@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLACK DESERT RESEARCH TERMINAL</title>
+    <link rel="icon" href="data:,">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/terminal.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/themes.css">
+</head>
+<body>
+    <noscript>
+        <div class="noscript-warning" role="alert">
+            BLACK DESERT RESEARCH TERMINAL requires JavaScript to run.
+        </div>
+    </noscript>
+
+    <input type="file" id="fileInput" accept=".md,.markdown,.txt,.zip,.dat,.db,.bin" aria-label="Load database file">
+    <input type="file" id="statusFileInput" accept=".txt,.md,.markdown,.dat,.db,.bin" aria-label="Load facility status profile file">
+    
+    <!-- Password Dialog -->
+    <div class="dialog-overlay" id="accessDialog" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="accessDialogTitle" aria-describedby="accessDialogDescription">
+        <div class="dialog-box glow">
+            <h2 id="accessDialogTitle">◆ SECURITY CHECK ◆</h2>
+            <p id="accessDialogDescription">Enter access password to gain higher clearance:</p>
+            <div class="dialog-error" id="accessError" role="alert">ACCESS DENIED - INVALID CREDENTIALS</div>
+            <input type="password" id="accessPassword" placeholder="Enter password..." aria-label="Access password">
+            <div class="dialog-buttons">
+                <button class="dialog-btn cancel" id="accessCancelBtn" type="button">CANCEL</button>
+                <button class="dialog-btn primary" id="accessSubmitBtn" type="button">AUTHENTICATE</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Diagnostic Dashboard -->
+    <div class="diagnostic-overlay" id="diagnosticOverlay" aria-hidden="true">
+        <div class="diagnostic-panel glow" role="dialog" aria-modal="true" aria-labelledby="diagnosticTitle">
+            <div class="diagnostic-header">
+                <div>
+                    <div class="diagnostic-title glow" id="diagnosticTitle">BASE DIAGNOSTIC</div>
+                    <div class="diagnostic-meta" id="diagnosticMeta">SCAN BUS: STANDBY</div>
+                </div>
+                <button class="diagnostic-close glow" id="diagnosticClose" type="button">[ CLOSE ]</button>
+            </div>
+            <div class="diagnostic-grid diagnostic-dashboard-grid">
+                <div class="diagnostic-card" id="diagGeneratorCard">
+                    <div class="diagnostic-label"><span>GATE STABILITY // DUAL TRACE</span><span id="diagGeneratorStatus">CAL</span></div>
+                    <div class="diagnostic-readout telemetry-widget" id="diagGenerator" role="img" aria-label="SVG dual trace oscilloscope for gate stability"></div>
+                </div>
+                <div class="diagnostic-card" id="diagLifeCard">
+                    <div class="diagnostic-label"><span>SHAREHOLDER VALUE // PROJECTION</span><span id="diagLifeStatus">ROI</span></div>
+                    <div class="diagnostic-readout telemetry-widget" id="diagLife" role="img" aria-label="Animated shareholder value chart showing expenditure rising while profit falls"></div>
+                </div>
+                <div class="diagnostic-card" id="diagOutpostCard">
+                    <div class="diagnostic-label"><span>TACTICAL SWEEP // RADAR</span><span id="diagOutpostStatus">PING</span></div>
+                    <div class="diagnostic-readout telemetry-widget" id="diagOutpost" role="img" aria-label="SVG tactical radar sweep for relay and drone links"></div>
+                </div>
+                <div class="diagnostic-card" id="diagNetworkCard">
+                    <div class="diagnostic-label"><span>ENTITY NOISE // SPECTRUM</span><span id="diagNetworkStatus">SYNC</span></div>
+                    <div class="diagnostic-readout telemetry-widget" id="diagNetwork" role="img" aria-label="SVG spectrum waterfall for entity noise and communications"></div>
+                </div>
+                <div class="diagnostic-card diagnostic-card-feature" id="diagAlarmCard">
+                    <div class="diagnostic-label">
+                        <span>BIOSCAN ARRAY // VITALS</span>
+                        <span class="diagnostic-vitals-controls" aria-label="Select bioscan subject">
+                            <button class="diagnostic-cycle-btn" id="diagVitalsPrev" type="button" aria-label="Previous vital subject">&lt;-</button>
+                            <span id="diagVitalsSubject">SUBJ-01</span>
+                            <button class="diagnostic-cycle-btn" id="diagVitalsNext" type="button" aria-label="Next vital subject">-&gt;</button>
+                        </span>
+                        <span id="diagAlarmStatus">BIO</span>
+                    </div>
+                    <div class="diagnostic-readout telemetry-widget telemetry-widget-large" id="diagAlarm" role="img" aria-label="Large animated bioscan array with detailed crew vital traces"></div>
+                </div>
+                <div class="diagnostic-card" id="diagPowerCard">
+                    <div class="diagnostic-label"><span>REACTOR // CONTAINMENT // SYNC</span><span id="diagPowerStatus">RESERVE</span></div>
+                    <div class="diagnostic-readout telemetry-widget" id="diagPower" role="img" aria-label="SVG reactor containment and sync telemetry"></div>
+                </div>
+                <div class="diagnostic-card" id="diagSecurityCard">
+                    <div class="diagnostic-label"><span>ANOMALY TOMOGRAPHY // FIELD</span><span id="diagSecurityStatus">CHECK</span></div>
+                    <div class="diagnostic-readout telemetry-widget" id="diagSecurity" role="img" aria-label="SVG anomaly tomography wireframe field intensity map"></div>
+                </div>
+                <div class="diagnostic-card" id="diagEventsCard">
+                    <div class="diagnostic-label"><span>LIVE EVENT LOG // DIAGNOSTICS</span><span id="diagEventsStatus">FEED</span></div>
+                    <div class="diagnostic-readout telemetry-widget" id="diagEvents" role="log" aria-label="Live diagnostic event feed"></div>
+                </div>
+                <div class="diagnostic-card" id="diagIntegrityCard">
+                    <div class="diagnostic-label"><span>SIGNAL STRENGTH</span><span id="diagIntegrityStatus">LOCK</span></div>
+                    <div class="diagnostic-readout telemetry-widget" id="diagIntegrity" role="img" aria-label="SVG signal strength telemetry with dB meter and carrier lock"></div>
+                </div>
+                <div class="diagnostic-card" id="diagUplinkCard">
+                    <div class="diagnostic-label"><span>UPLINK // PROCESSOR LOAD</span><span id="diagUplinkStatus">PROC</span></div>
+                    <div class="diagnostic-readout telemetry-widget" id="diagUplink" role="img" aria-label="SVG uplink sync and processor load telemetry"></div>
+                </div>
+            </div>
+            <div class="diagnostic-footer">
+                <span id="diagnosticTicker">AWAITING SENSOR BUS</span>
+                <span>[ ESC CLOSE ]</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Topography -->
+    <div class="facility-overlay" id="facilityOverlay" aria-hidden="true">
+        <div class="facility-panel facility-map-panel glow" role="dialog" aria-modal="true" aria-labelledby="facilityTitle">
+            <div class="facility-header">
+                <div>
+                    <div class="facility-title glow" id="facilityTitle">TOPOGRAPHY</div>
+                    <div class="facility-meta" id="facilityMeta">TACTICAL MAP BUS: STANDBY</div>
+                </div>
+                <button class="facility-close glow" id="facilityClose" type="button">[ BACK TO TERMINAL ]</button>
+            </div>
+            <div class="facility-map-shell" aria-live="polite">
+                <div class="facility-map-loader" id="facilityMapLoader" role="status">
+                    <div class="facility-loader-logo">ARES // BLACK DESERT</div>
+                    <div class="facility-loader-title">TACTICAL MAP RUNTIME</div>
+                    <div class="facility-loader-bar" aria-hidden="true">
+                        <span id="facilityMapLoaderFill"></span>
+                    </div>
+                    <div class="facility-loader-text" id="facilityMapLoaderText">TACTICAL MAP BUS: STANDBY</div>
+                </div>
+                <div class="facility-map-frame-wrap" id="facilityMapFrameWrap" hidden></div>
+                <div class="facility-legacy-readouts" aria-hidden="true">
+                    <canvas id="facilityAtmosphereCanvas" class="facility-atmosphere-canvas"></canvas>
+                    <div id="facilityCanvas" class="facility-svg-host" role="img" aria-label="Legacy SVG facility command center map"></div>
+                    <span id="facilityScanStatus">MAP STANDBY</span>
+                    <pre id="facilityOverview"></pre>
+                    <pre id="facilityLifeSupport"></pre>
+                    <pre id="facilityZones"></pre>
+                    <pre id="facilityContainment"></pre>
+                    <pre id="facilityUplink"></pre>
+                    <pre id="facilityContacts"></pre>
+                    <div id="facilityTelemetryStrip"></div>
+                </div>
+            </div>
+            <div class="facility-footer">
+                <span id="facilityTicker">TACTICAL MAP WAITING</span>
+                <span>[ ESC CLOSE ]</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Boot Screen -->
+    <div class="boot-screen" id="bootScreen">
+        <div class="boot-left">
+            <div class="boot-output glow" id="bootOutput"></div>
+        </div>
+        <div class="boot-right">
+            <div class="boot-logo glow" id="bootLogo"></div>
+        </div>
+        <button class="boot-skip glow" id="bootSkip" type="button">[ TAP / ENTER TO SKIP ]</button>
+    </div>
+
+    <!-- Main Terminal -->
+    <main class="crt-monitor terminal-shell" id="terminalMain" aria-label="Black Desert Research Terminal">
+        <div class="screen-content">
+            <header class="header-bar terminal-header">
+                <div class="header-panel">
+                    <div class="ares-mark" aria-hidden="true">
+                        <pre>    /\
+   /  \
+  / /\ \
+ / /__\ \
+/__/  \__\</pre>
+                    </div>
+                    <div class="header-primary">
+                        <div class="system-title glow">BLACK DESERT RESEARCH TERMINAL</div>
+                        <div class="status-bar" aria-label="System status">
+                            <button class="status-item status-button status-toggle system-toggle" id="systemStatusItem" type="button" aria-label="System online. Activate to shut down terminal.">
+                                <div class="status-dot" id="systemDot"></div> SYS <span id="systemStatus">ONLINE</span>
+                            </button>
+                            <button class="status-item status-button status-toggle" id="networkStatusItem" type="button" aria-label="Network online. Activate to toggle network state.">
+                                <div class="status-dot" id="networkDot"></div> NET <span id="networkStatus">ONLINE</span>
+                            </button>
+                            <div class="status-item"><div class="status-dot"></div> DB <span>ONLINE</span></div>
+                            <div class="status-item"><div class="status-dot err"></div> EXT <span>SECURE</span></div>
+                            <button class="status-item status-button status-toggle" id="soundToggle" type="button" aria-label="Sound on. Activate to mute terminal sound.">
+                                <div class="status-dot" id="soundDot"></div> SND <span id="soundStatus">ON</span>
+                            </button>
+                            <button class="status-item status-button fx-toggle" id="effectsToggle" type="button" aria-label="Toggle visual effects mode">
+                                <div class="status-dot" id="effectsDot"></div> FX <span id="effectsStatus">AUTO</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="header-info">
+                        ARES MACROTECHNOLOGY<br>
+                        BUILD: <span class="hl">4.7.2</span><br>
+                        ENTRIES: <span class="hl" id="entryCount">0</span>
+                    </div>
+                </div>
+                <div class="hologram-panel ares-wordmark" aria-label="Ares Macrotechnology identity">
+                    <svg class="ares-wordmark-svg glow" viewBox="0 0 270 122" role="img" aria-label="ARES Macrotechnology">
+                        <g class="ares-wordmark-grid" aria-hidden="true">
+                            <path d="M20 17H248M20 104H248M20 17V104M248 17V104" />
+                            <path d="M36 88H232M36 32H232M58 17V104M212 17V104" />
+                        </g>
+                        <g class="ares-emblem" aria-hidden="true">
+                            <path class="ares-emblem-core" d="M35 82 57 35 79 82M46 62h22M57 35v47" />
+                            <path class="ares-emblem-rake" d="M57 18v17M45 23l12 12 12-12M28 91l29-56 29 56" />
+                            <path class="ares-emblem-lines" d="M24 94h66M31 88h52M39 76h36" />
+                        </g>
+                        <g class="ares-wordmark-text">
+                            <text class="ares-wordmark-main" x="98" y="62">ARES</text>
+                            <text class="ares-wordmark-sub" x="101" y="88">Macrotechnology</text>
+                        </g>
+                        <path class="ares-wordmark-scan" d="M20 28H248" aria-hidden="true" />
+                    </svg>
+                </div>
+            </header>
+
+            <div class="terminal-body">
+                <aside class="menu-panel sidebar-left" aria-label="Terminal command menu">
+                    <div class="menu-title">— NAVIGATION</div>
+                    <nav class="menu-list" id="menuList" aria-label="Terminal commands">
+                        <button class="menu-item selected" type="button" data-cmd="home" data-index="0" aria-current="true">
+                            <span class="icon">⌂</span><span>/HOME</span>
+                        </button>
+                        <button class="menu-item" type="button" data-cmd="welcome" data-index="1" aria-current="false">
+                            <span class="icon">⌁</span><span>/WELCOME</span>
+                        </button>
+                        <button class="menu-item" type="button" data-cmd="help" data-index="2" aria-current="false">
+                            <span class="icon">?</span><span>/HELP</span>
+                        </button>
+                        <div class="menu-title menu-section-title">— DATA</div>
+                        <button class="menu-item" type="button" data-cmd="load" data-index="3" aria-current="false">
+                            <span class="icon">◉</span><span>/LOAD DATABASE</span>
+                        </button>
+                        <button class="menu-item" type="button" data-cmd="search" data-index="4" aria-current="false">
+                            <span class="icon">⌕</span><span>/SEARCH</span>
+                        </button>
+                        <button class="menu-item" type="button" data-cmd="categories" data-index="5" aria-current="false">
+                            <span class="icon">▦</span><span>/CATEGORIES</span>
+                        </button>
+                        <button class="menu-item" type="button" data-cmd="clear" data-index="6" aria-current="false">
+                            <span class="icon">⌧</span><span>/CLEAR</span>
+                        </button>
+
+                        <div class="menu-title menu-section-title">— ACCESS</div>
+                        <button class="menu-item" type="button" data-cmd="access" data-index="7" aria-current="false">
+                            <span class="icon">♙</span><span>/ACCESS</span>
+                        </button>
+                        <button class="menu-item admin-cmd locked" type="button" data-cmd="loadStatus" data-index="8" aria-current="false" aria-disabled="true">
+                            <span class="icon">▥</span><span>/LOAD STATUS</span>
+                        </button>
+                        <button class="menu-item admin-cmd locked" type="button" data-cmd="list" data-index="9" aria-current="false" aria-disabled="true">
+                            <span class="icon">▤</span><span>/LIST ALL</span>
+                        </button>
+                        <button class="menu-item admin-cmd locked" type="button" data-cmd="fsearch" data-index="10" aria-current="false" aria-disabled="true">
+                            <span class="icon">⌕</span><span>/FSEARCH</span>
+                        </button>
+                        <button class="menu-item admin-cmd locked" type="button" data-cmd="logout" data-index="11" aria-current="false" aria-disabled="true">
+                            <span class="icon">⏻</span><span>/LOGOUT</span>
+                        </button>
+                    </nav>
+                    <div class="admin-badge" id="adminBadge">◆ ADMIN ACCESS ◆</div>
+                    <div class="menu-footer">Navigate ↑↓</div>
+                </aside>
+
+                <section class="content-panel main-panel" aria-label="Terminal output">
+                    <div class="content-toolbar">
+                        <span>SESSION: <span class="t-amber">ACTIVE</span></span>
+                        <span>USER: <span class="t-amber">AUTH_PERSONNEL_ASSET</span></span>
+                        <span>CLEARANCE: <span class="t-cyan" id="clearanceLevel">Employee</span></span>
+                        <span class="security-glyph" aria-hidden="true">⛨</span>
+                        <div class="toolbar-right">
+                            <span class="page-indicator" id="pageIndicator"></span>
+                            <div class="database-slot-controls" id="databaseSlotControls" aria-label="Loaded database slots">
+                                <button class="database-slot-button empty" type="button" data-slot="0" aria-label="Database slot 1 empty" title="Database slot 1"><span aria-hidden="true">▣</span></button>
+                                <button class="database-slot-button empty" type="button" data-slot="1" aria-label="Database slot 2 empty" title="Database slot 2"><span aria-hidden="true">▣</span></button>
+                                <button class="database-slot-button empty" type="button" data-slot="2" aria-label="Database slot 3 empty" title="Database slot 3"><span aria-hidden="true">▣</span></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="content-viewport" id="contentViewport">
+                        <div class="content-area" id="contentArea">
+                            <div class="output glow" id="output"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <aside class="sidebar-right system-sidebar" aria-label="Facility overview sidebar">
+                    <section class="side-card facility-overview-card">
+                        <h2>// FACILITY OVERVIEW</h2>
+                        <div class="bre-site-indicators" id="breSiteIndicators" aria-label="BRE site connection indicators">
+                            <span class="bre-site-indicator offline" data-bre-site="BRE-01">BRE-01</span>
+                            <span class="bre-site-indicator offline" data-bre-site="BRE-02">BRE-02</span>
+                            <span class="bre-site-indicator offline" data-bre-site="BRE-03">BRE-03</span>
+                            <span class="bre-site-indicator offline" data-bre-site="BRE-04">BRE-04</span>
+                            <span class="bre-site-indicator offline" data-bre-site="BRE-05">BRE-05</span>
+                            <span class="bre-site-indicator offline" data-bre-site="BRE-06">BRE-06</span>
+                        </div>
+                        <button class="mini-wireframe projection-frame" type="button" data-panel-cmd="wireframe" data-panel-label="Tactical wireframe map" aria-label="Open tactical wireframe map" title="Open tactical wireframe map">
+                            <canvas id="hologramCanvas" aria-hidden="true"></canvas>
+                            <img class="site-floorplan-preview" id="siteFloorplanImage" alt="" hidden>
+                        </button>
+                    </section>
+                    <section class="side-card signal-spectrum-card">
+                        <h2>// SIGNAL</h2>
+                        <div class="side-ascii signal-spectrum-widget" id="sideSignalSpectrum" aria-hidden="true"></div>
+                    </section>
+                    <section class="side-card right-actions-card">
+                        <h2>// COMMAND ACCESS</h2>
+                        <div class="side-action-module">
+                            <button class="side-action-button" type="button" data-panel-cmd="diagnostic">
+                                <span aria-hidden="true">⌁</span><span>/DIAGNOSTIC</span>
+                            </button>
+                            <div class="side-ascii diag-ascii side-glyph-widget" id="sideDiagnosticTelemetry" aria-hidden="true">
+                            </div>
+                        </div>
+                        <div class="side-action-module">
+                            <button class="side-action-button" type="button" data-panel-cmd="facility">
+                                <span aria-hidden="true">⛨</span><span>/TOPOGRAPHY</span>
+                            </button>
+                            <div class="side-ascii facility-ascii side-glyph-widget" id="sideFacilityTelemetry" aria-hidden="true">
+                            </div>
+                        </div>
+                    </section>
+                </aside>
+            </div>
+
+            <div class="input-area command-bar">
+                <div class="command-version">BDRT v4.7</div>
+                <div class="command-entry">
+                    <label class="prompt glow" for="commandInput">&gt;</label>
+                    <input type="text" id="commandInput" autocomplete="off" spellcheck="false" placeholder="ENTER COMMAND..." aria-label="Terminal command input">
+                </div>
+                <button class="execute-button" id="commandExecuteBtn" type="button">[ EXECUTE ]</button>
+            </div>
+        </div>
+    </main>
+
+    <div class="nav-hint glow" id="navHint">[ ↑ ↓ ] COMMAND HISTORY</div>
+
+    <div class="shutdown-screen hidden" id="shutdownScreen" aria-hidden="true">
+        <div class="shutdown-panel">
+            <svg class="ares-wordmark-svg shutdown-ares-wordmark glow" viewBox="0 0 270 122" aria-hidden="true">
+                <g class="ares-wordmark-grid">
+                    <path d="M20 17H248M20 104H248M20 17V104M248 17V104" />
+                    <path d="M36 88H232M36 32H232M58 17V104M212 17V104" />
+                </g>
+                <g class="ares-emblem">
+                    <path class="ares-emblem-core" d="M35 82 57 35 79 82M46 62h22M57 35v47" />
+                    <path class="ares-emblem-rake" d="M57 18v17M45 23l12 12 12-12M28 91l29-56 29 56" />
+                    <path class="ares-emblem-lines" d="M24 94h66M31 88h52M39 76h36" />
+                </g>
+                <g class="ares-wordmark-text">
+                    <text class="ares-wordmark-main" x="98" y="62">ARES</text>
+                    <text class="ares-wordmark-sub" x="101" y="88">Macrotechnology</text>
+                </g>
+                <path class="ares-wordmark-scan" d="M20 28H248" />
+            </svg>
+            <div class="shutdown-log glow" id="shutdownLog" aria-live="polite"></div>
+            <pre class="shutdown-offline-ascii glow" id="shutdownOfflineText" aria-label="Terminal offline"> ██████╗ ███████╗███████╗██╗     ██╗███╗   ██╗███████╗
+██╔═══██╗██╔════╝██╔════╝██║     ██║████╗  ██║██╔════╝
+██║   ██║█████╗  █████╗  ██║     ██║██╔██╗ ██║█████╗
+██║   ██║██╔══╝  ██╔══╝  ██║     ██║██║╚██╗██║██╔══╝
+╚██████╔╝██║     ██║     ███████╗██║██║ ╚████║███████╗
+ ╚═════╝ ╚═╝     ╚═╝     ╚══════╝╚═╝╚═╝  ╚═══╝╚══════╝</pre>
+        </div>
+        <button class="shutdown-reboot-button glow" id="rebootTerminalBtn" type="button">Reboot Terminal</button>
+    </div>
+
+    <script src="js/debug.js"></script>
+    <!-- GSAP is used for boot and panel transitions. Fuse is lazy-loaded by the app scripts only when needed. -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
+    <script src="js/state.js" defer></script>
+    <script src="js/utils.js" defer></script>
+    <script src="js/audio.js" defer></script>
+    <script src="js/database.js" defer></script>
+    <script src="js/boot.js" defer></script>
+    <script src="js/terminal.js" defer></script>
+    <script src="js/session-restore.js" defer></script>
+    <script src="js/map-overlay.js" defer></script>
+    <script src="js/status-profile.js" defer></script>
+    <script src="js/sites.js" defer></script>
+    <script src="js/diagnostics.js" defer></script>
+    <script src="js/facility-status.js" defer></script>
+    <script src="js/access.js" defer></script>
+    <script src="js/ui.js" defer></script>
+    <script src="js/main.js" defer></script>
+</body>
+</html>

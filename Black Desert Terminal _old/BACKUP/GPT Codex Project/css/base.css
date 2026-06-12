@@ -1,0 +1,75 @@
+/* Black Desert Research Terminal styles. Edit color/font variables near the top. */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+@font-face {
+    font-family: "IBM DOS ISO8";
+    src:
+        local("IBM DOS ISO8"),
+        local("Px437 IBM DOS ISO8"),
+        local("Px437 IBM ISO8"),
+        local("Px437_IBM_ISO8"),
+        local("Ac437 IBM DOS ISO8"),
+        local("Mx437 IBM DOS ISO8");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+:root {
+    color-scheme: dark;
+    --phosphor: #20c20e;
+    --phosphor-dim: #0a3d08;
+    --phosphor-glow: #39ff14;
+    --amber: #ffb000;
+    --amber-dim: #8b6914;
+    --red: #ff3333;
+    --cyan: #00d4aa;
+    --magenta: #ff00ff;
+    --bg: #050805;
+    --font-size-base: clamp(13px, 1.05vw, 16px);
+    --font-size-title: clamp(15px, 1.35vw, 20px);
+    --font-size-small: clamp(10px, 0.9vw, 13px);
+    --font-size-tiny: clamp(10px, 1.2vw, 12px);
+    --panel-bg: rgba(4, 14, 6, 0.94);
+    --panel-bg-deep: rgba(1, 6, 3, 0.96);
+    --panel-highlight: rgba(32, 194, 14, 0.08);
+    --panel-edge: rgba(57, 255, 20, 0.18);
+    --ui-ease: cubic-bezier(0.16, 1, 0.3, 1);
+    --viewport-height: 100vh;
+    --terminal-font: "IBM DOS ISO8", "Px437 IBM ISO8", "Ac437 IBM DOS ISO8", "Mx437 IBM DOS ISO8", "Courier New", monospace;
+}
+
+@supports (height: 100dvh) {
+    :root {
+        --viewport-height: 100dvh;
+    }
+}
+
+html, body { height: 100%; overflow: hidden; }
+
+body {
+    background:
+        radial-gradient(circle at 50% 20%, rgba(32, 194, 14, 0.08), transparent 34%),
+        linear-gradient(180deg, #020402 0%, var(--bg) 42%, #010301 100%);
+    font-family: var(--terminal-font);
+    font-synthesis: none;
+    text-rendering: optimizeSpeed;
+    accent-color: var(--phosphor);
+    color: var(--phosphor);
+    font-size: var(--font-size-base);
+}
+
+.noscript-warning {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: #020402;
+    color: var(--amber);
+    font-family: var(--terminal-font);
+    text-align: center;
+    letter-spacing: 1px;
+}
+

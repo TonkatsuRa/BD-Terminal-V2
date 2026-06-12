@@ -1,0 +1,2698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ares Database Markdown Editor</title>
+    <link rel="icon" href="data:,">
+    <style>
+        :root {
+            color-scheme: dark;
+            --bg: #030604;
+            --panel: #07130b;
+            --panel-2: #0b1b10;
+            --line: rgba(32, 194, 14, 0.28);
+            --amber-line: rgba(255, 176, 0, 0.42);
+            --text: #c8f8c0;
+            --muted: #71936f;
+            --green: #20c20e;
+            --cyan: #00d4aa;
+            --amber: #ffb000;
+            --red: #ff4b4b;
+            --radius: 8px;
+            --shadow: 0 0 34px rgba(32, 194, 14, 0.11);
+            --font: "IBM Plex Mono", "Consolas", "Courier New", monospace;
+        }
+
+        * { box-sizing: border-box; }
+
+        html, body {
+            margin: 0;
+            min-height: 100%;
+            background:
+                linear-gradient(rgba(32, 194, 14, 0.03) 1px, transparent 1px),
+                radial-gradient(circle at top right, rgba(255, 176, 0, 0.1), transparent 34rem),
+                var(--bg);
+            background-size: 100% 4px, auto, auto;
+            color: var(--text);
+            font-family: var(--font);
+        }
+
+        body {
+            min-height: 100svh;
+            padding: 16px;
+        }
+
+        button,
+        input,
+        textarea,
+        select {
+            font: inherit;
+        }
+
+        button {
+            min-height: 42px;
+            border: 1px solid var(--amber-line);
+            background: rgba(255, 176, 0, 0.09);
+            color: var(--amber);
+            padding: 9px 12px;
+            cursor: pointer;
+        }
+
+        button:hover { border-color: var(--amber); }
+        button:focus-visible,
+        input:focus-visible,
+        textarea:focus-visible,
+        select:focus-visible {
+            outline: 2px solid var(--amber);
+            outline-offset: 3px;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            border: 1px solid var(--line);
+            background: rgba(0, 12, 4, 0.84);
+            color: var(--text);
+            padding: 10px;
+        }
+
+        textarea {
+            min-height: 150px;
+            resize: vertical;
+            line-height: 1.45;
+        }
+
+        label {
+            display: grid;
+            gap: 6px;
+            color: var(--muted);
+            font-size: 0.78rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .app {
+            width: min(1460px, 100%);
+            margin-inline: auto;
+        }
+
+        header {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            align-items: end;
+            justify-content: space-between;
+            margin-bottom: 14px;
+            border: 1px solid var(--line);
+            background: rgba(3, 12, 5, 0.88);
+            box-shadow: var(--shadow);
+            padding: 14px;
+        }
+
+        h1 {
+            margin: 0 0 6px;
+            color: var(--amber);
+            font-size: clamp(1.15rem, 2.4vw, 1.7rem);
+            letter-spacing: 0.08em;
+        }
+
+        .subtitle {
+            margin: 0;
+            color: var(--muted);
+            max-width: 76ch;
+            line-height: 1.5;
+        }
+
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .status {
+            min-height: 1.4em;
+            margin: 0 0 12px;
+            color: var(--cyan);
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 260px minmax(0, 1fr) minmax(320px, 0.82fr);
+            gap: 14px;
+            align-items: start;
+        }
+
+        .panel {
+            border: 1px solid var(--line);
+            background: rgba(7, 19, 11, 0.92);
+            box-shadow: var(--shadow);
+            padding: 14px;
+        }
+
+        .panel h2 {
+            margin: 0 0 12px;
+            color: var(--cyan);
+            font-size: 1rem;
+            letter-spacing: 0.08em;
+        }
+
+        .source-list,
+        .entry-list {
+            display: grid;
+            gap: 8px;
+        }
+
+        .source-btn,
+        .entry-btn {
+            width: 100%;
+            min-height: 0;
+            text-align: left;
+            color: var(--text);
+            border-color: rgba(32, 194, 14, 0.26);
+            background: rgba(0, 14, 4, 0.66);
+        }
+
+        .entry-btn.active {
+            color: var(--amber);
+            border-color: var(--amber);
+            background: rgba(255, 176, 0, 0.12);
+        }
+
+        .field-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .entry-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 12px 0;
+        }
+
+        .template-groups {
+            display: grid;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .template-group {
+            display: grid;
+            gap: 7px;
+        }
+
+        .template-title {
+            color: var(--cyan);
+            font-size: 0.78rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        .template-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+        }
+
+        .template-btn {
+            min-height: 34px;
+            padding: 6px 9px;
+            border-color: rgba(32, 194, 14, 0.28);
+            color: var(--text);
+            background: rgba(0, 14, 4, 0.66);
+            font-size: 0.78rem;
+        }
+
+        .template-btn:hover {
+            border-color: var(--cyan);
+            color: var(--cyan);
+        }
+
+        .template-popup-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            display: grid;
+            place-items: center;
+            padding: 18px;
+            background: rgba(0, 0, 0, 0.58);
+        }
+
+        .template-popup-overlay.hidden {
+            display: none;
+        }
+
+        .template-popup {
+            width: min(780px, 100%);
+            max-height: min(760px, 88svh);
+            overflow: auto;
+            border: 1px solid var(--amber-line);
+            background:
+                linear-gradient(rgba(32, 194, 14, 0.025) 1px, transparent 1px),
+                rgba(3, 12, 5, 0.97);
+            background-size: 100% 4px, auto;
+            box-shadow: 0 0 42px rgba(255, 176, 0, 0.16);
+            padding: 14px;
+        }
+
+        .template-popup-header {
+            display: flex;
+            gap: 12px;
+            align-items: start;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(32, 194, 14, 0.2);
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+        }
+
+        .template-popup-title {
+            color: var(--amber);
+            font-size: 1rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .template-popup-close {
+            min-height: 34px;
+            padding: 5px 9px;
+        }
+
+        .template-editor {
+            display: grid;
+            gap: 10px;
+        }
+
+        .template-editor-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .template-preview {
+            min-height: 130px;
+            border: 1px solid rgba(32, 194, 14, 0.22);
+            background: rgba(0, 8, 3, 0.7);
+            color: var(--green);
+            padding: 10px;
+            white-space: pre;
+            overflow: auto;
+            line-height: 1.35;
+        }
+
+        .template-value-controls {
+            display: grid;
+            gap: 8px;
+            border: 1px solid rgba(32, 194, 14, 0.18);
+            background: rgba(0, 8, 3, 0.44);
+            padding: 10px;
+        }
+
+        .template-control-row {
+            display: grid;
+            grid-template-columns: minmax(86px, 0.7fr) minmax(140px, 1.4fr) 64px;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .template-control-row input[type="range"] {
+            accent-color: var(--amber);
+            padding: 0;
+        }
+
+        .template-control-row input[type="number"] {
+            padding: 7px;
+        }
+
+        .template-control-label {
+            color: var(--cyan);
+            font-size: 0.78rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .template-fieldset {
+            display: grid;
+            gap: 10px;
+            border: 1px solid rgba(32, 194, 14, 0.18);
+            background: rgba(0, 8, 3, 0.36);
+            padding: 10px;
+        }
+
+        .template-fieldset-title {
+            color: var(--amber);
+            font-size: 0.78rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        .template-check {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            color: var(--text);
+            text-transform: none;
+            letter-spacing: normal;
+        }
+
+        .template-check input {
+            width: auto;
+            accent-color: var(--amber);
+        }
+
+        .danger {
+            border-color: rgba(255, 75, 75, 0.52);
+            color: var(--red);
+            background: rgba(255, 75, 75, 0.08);
+        }
+
+        .preview {
+            display: grid;
+            gap: 10px;
+        }
+
+        .preview-card {
+            border-left: 3px solid var(--green);
+            background: rgba(0, 18, 6, 0.56);
+            padding: 9px 10px;
+            white-space: pre-wrap;
+        }
+
+        .preview-card.restricted { border-color: var(--red); }
+
+        .note {
+            color: var(--muted);
+            line-height: 1.5;
+            font-size: 0.88rem;
+        }
+
+        .hidden { display: none; }
+
+        @media (max-width: 1120px) {
+            .layout {
+                grid-template-columns: 1fr 1fr;
+            }
+            .sources {
+                grid-column: 1 / -1;
+            }
+        }
+
+        @media (max-width: 760px) {
+            body { padding: 10px; }
+            .layout,
+            .field-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="app">
+        <header>
+            <div>
+                <h1>ARES DATABASE EDITOR</h1>
+                <p class="subtitle">Edit Markdown database packages for the terminal. GitHub Pages cannot write back into your repository, so save by downloading the edited file or using the optional browser local-save feature.</p>
+            </div>
+            <div class="toolbar" aria-label="Editor actions">
+                <button id="loadManifestBtn" type="button">LOAD MANIFEST</button>
+                <button id="openFileBtn" type="button">OPEN LOCAL FILE</button>
+                <button id="addEntryBtn" type="button">ADD ENTRY</button>
+                <button id="downloadMdBtn" type="button">DOWNLOAD MD</button>
+                <button id="downloadZipBtn" type="button">DOWNLOAD ZIP PACKAGE</button>
+                <button id="downloadDatBtn" type="button">DOWNLOAD ENCRYPTED DAT</button>
+                <button id="saveLocalBtn" type="button" class="hidden">SAVE LOCAL FILE</button>
+            </div>
+        </header>
+
+        <p id="status" class="status" role="status" aria-live="polite"></p>
+        <input id="fileInput" class="hidden" type="file" accept=".md,.markdown,.txt,.zip,.dat,.db,.bin">
+
+        <div class="layout">
+            <section class="panel sources" aria-label="Database source list">
+                <h2>SOURCES</h2>
+                <div id="sourceList" class="source-list"></div>
+                <p class="note">Manifest loading uses <strong>databases/manifest.json</strong> and only shows packages that can be verified inside <strong>databases/</strong>. Static GitHub Pages cannot scan folders automatically, so the manifest remains the source list.</p>
+            </section>
+
+            <section class="panel" aria-label="Database entry editor">
+                <h2>DATABASE PACKAGE</h2>
+                <div class="field-grid">
+                    <label>Package id
+                        <input id="metaId" type="text">
+                    </label>
+                    <label>Terminal password
+                        <input id="metaPassword" type="text">
+                    </label>
+                    <label>Title
+                        <input id="metaTitle" type="text">
+                    </label>
+                    <label>Description
+                        <input id="metaDescription" type="text">
+                    </label>
+                </div>
+
+                <div class="entry-actions">
+                    <button id="duplicateEntryBtn" type="button">DUPLICATE ENTRY</button>
+                    <button id="removeEntryBtn" type="button" class="danger">REMOVE ENTRY</button>
+                </div>
+
+                <div class="field-grid">
+                    <label>Entry id
+                        <input id="entryId" type="text">
+                    </label>
+                    <label>Title
+                        <input id="entryTitle" type="text">
+                    </label>
+                    <label>Category
+                        <input id="entryCategory" type="text" list="categoryList">
+                    </label>
+                    <label>Clearance
+                        <input id="entryClearance" type="range" min="1" max="5">
+                    </label>
+                    <label>Tags / keywords
+                        <input id="entryTags" type="text">
+                    </label>
+                    <label>Related entries
+                        <input id="entryRelated" type="text">
+                    </label>
+                </div>
+
+                <label>Optional redacted / glitch text
+                    <input id="entryRedacted" type="text">
+                </label>
+                <div class="entry-actions">
+                    <button id="openTemplatePopupBtn" type="button">MESSAGE CONTENT TEMPLATES</button>
+                </div>
+                <label>Body text
+                    <textarea id="entryBody"></textarea>
+                </label>
+                <datalist id="categoryList"></datalist>
+            </section>
+
+            <section class="panel" aria-label="Entry list and preview">
+                <h2>ENTRIES</h2>
+                <div id="entryList" class="entry-list"></div>
+                <h2 style="margin-top:16px">PREVIEW</h2>
+                <div id="preview" class="preview"></div>
+            </section>
+        </div>
+    </main>
+
+    <div id="templatePopupOverlay" class="template-popup-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="templatePopupTitle">
+        <div class="template-popup">
+            <div class="template-popup-header">
+                <div>
+                    <div id="templatePopupTitle" class="template-popup-title">Message Content Templates</div>
+                    <p id="templatePopupHint" class="note">Choose a template, edit its content, then insert it into the Body text.</p>
+                </div>
+                <button id="templatePopupCloseBtn" class="template-popup-close" type="button">[ CLOSE ]</button>
+            </div>
+            <div id="templatePalette" class="template-groups"></div>
+            <div id="templateEditor" class="template-editor hidden"></div>
+        </div>
+    </div>
+
+    <script>
+        // IMPORTANT: keep ENCRYPTION_KEY in sync with the value in js/utils.js.
+        // This file is standalone (no <script src>) so the constant has to be
+        // duplicated here; if you ever rotate the key, change it in BOTH places
+        // or encrypted .dat exports will stop decrypting in the terminal.
+        const ENCRYPTION_KEY = 'Shelby';
+        const ZIP_SCRIPT_URL = 'https://cdn.jsdelivr.net/npm/@zip.js/zip.js@2.8.26/dist/zip-full.min.js';
+        // Same transport key used by the terminal ZIP loader. This is obfuscation, not real secrecy.
+        const DATABASE_ZIP_KEY_HEX_PARTS = ['5368656c', '62795368', '656c6279', '313233'];
+        const DEFAULT_DATABASE = `---
+id: database1
+title: Personnel Registry
+description: Employee, contractor, and missing staff notes for Black Desert Research.
+password: database1
+---
+
+<!--
+Add categories with: ## Category: CATEGORY NAME
+Add entries with: ### Entry: Entry Title
+Fields: id, title, category, tags, clearance, related, redacted, body.
+Comments are hidden in the terminal.
+-->
+
+## Category: PERSONNEL
+
+### Entry: Director Halden Voss
+id: personnel-voss
+title: Director Halden Voss
+category: PERSONNEL
+tags: director, command, ares
+clearance: 2
+related: executive-evacuation
+body:
+Facility Director assigned by Ares Macrotechnology Special Projects.
+Last confirmed in Command Core during external relay failure.
+`;
+
+        // Kept temporarily for rollback/reference. The active popup uses the schema-driven MESSAGE_TEMPLATES below.
+        const LEGACY_MESSAGE_TEMPLATES = [
+            {
+                category: 'ASCII Art',
+                items: [
+                    {
+                        label: 'ARES Stamp',
+                        text: [
+                            '        /\\',
+                            '   ____/  \\____',
+                            '  /   A R E S  \\',
+                            ' / MACROTECH     \\',
+                            '/_________________\\'
+                        ].join('\n')
+                    },
+                    {
+                        label: 'Warning Sigil',
+                        text: [
+                            '      /!\\',
+                            '     /___\\',
+                            '  WARNING NODE',
+                            '  AUTHORIZED EYES ONLY'
+                        ].join('\n')
+                    },
+                    {
+                        label: 'Terminal Skull',
+                        text: [
+                            '   .-""""-.',
+                            '  /  X  X  \\',
+                            ' |    __    |',
+                            '  \\  ----  /',
+                            '   `-.__.-`'
+                        ].join('\n')
+                    }
+                ]
+            },
+            {
+                category: 'Frames',
+                items: [
+                    {
+                        label: 'Report Frame',
+                        type: 'frame',
+                        title: 'ARES INTERNAL REPORT',
+                        content: 'SUBJECT : \nSTATUS  : \nNOTES   : '
+                    },
+                    {
+                        label: 'Redacted Frame',
+                        type: 'frame',
+                        title: 'REDACTED PACKAGE',
+                        content: 'CLEARANCE : \nSOURCE    : \nSUMMARY   : '
+                    },
+                    {
+                        label: 'Incident Frame',
+                        type: 'frame',
+                        title: 'INCIDENT ESCALATION',
+                        content: 'TIME     : \nLOCATION : \nRESPONSE : '
+                    }
+                ]
+            },
+            {
+                category: 'Lines',
+                items: [
+                    { label: 'Thin Line', text: '────────────────────────────────────────────' },
+                    { label: 'Double Line', text: '════════════════════════════════════════════' },
+                    { label: 'Data Line', text: '----[ DATA CHANNEL ]------------------------' },
+                    { label: 'Alert Line', text: '!!!! ALERT / ALERT / ALERT / ALERT !!!!' }
+                ]
+            },
+            {
+                category: 'Boxes',
+                items: [
+                    {
+                        label: 'Small Box',
+                        type: 'box',
+                        title: '',
+                        content: 'Text line'
+                    },
+                    {
+                        label: 'Checklist Box',
+                        type: 'box',
+                        title: 'CHECKLIST',
+                        content: '[ ] CONFIRM\n[ ] LOG\n[ ] ESCALATE'
+                    },
+                    {
+                        label: 'Access Box',
+                        type: 'frame',
+                        title: 'ACCESS CHECK',
+                        content: 'LEVEL : \nTOKEN : '
+                    }
+                ]
+            },
+            {
+                category: 'Symbols',
+                items: [
+                    { label: 'Status Row', text: '◆ ONLINE   ◇ DEGRADED   △ WARNING   □ SEALED' },
+                    { label: 'Access Row', text: 'EMPLOYEE ░░░  ELEVATED ▒▒▒  ADMIN ███' },
+                    { label: 'Entity Row', text: '○ TRACE   ◇ CONTACT   △ HOSTILE   ◆ UNKNOWN' },
+                    { label: 'Route Row', text: '[CORE]──[LAB]──[ARCHIVE]──[GATE]' }
+                ]
+            },
+            {
+                category: 'Separators',
+                items: [
+                    { label: 'Command Break', text: '\n--- ARES COMMAND CHANNEL --------------------\n' },
+                    { label: 'File Break', text: '\n╠═ FILE SEGMENT ═════════════════════════════╣\n' },
+                    { label: 'Timestamp Break', text: '\n[2084-05-24 // 03:17:42] --------------------\n' },
+                    { label: 'Warning Break', text: '\n!!! COMPARTMENTALIZED DATA BELOW !!!\n' }
+                ]
+            },
+            {
+                category: 'ASCII Graphs / Charts',
+                items: [
+                    {
+                        label: 'Signal Bars',
+                        type: 'chart',
+                        title: 'SIGNAL ANALYSIS',
+                        content: 'SIGNAL|72\nNOISE|48\nLOCK|81'
+                    },
+                    {
+                        label: 'Status Bars',
+                        type: 'chart',
+                        title: 'SYSTEM STATUS',
+                        content: 'POWER GRID|82\nUPLINK|51\nCONTAINMENT|74'
+                    },
+                    {
+                        label: 'Tiny Plot',
+                        type: 'plot',
+                        title: 'MANA FLUX',
+                        yLabel: 'MANA FLUX',
+                        xLabel: 'SAMPLE',
+                        yMax: 8,
+                        content: '5\n7\n6\n8'
+                    },
+                    {
+                        label: 'Vertical Bar Chart',
+                        type: 'bar-plot',
+                        title: 'MANA FLUX',
+                        yLabel: 'FLUX',
+                        xLabel: 'CELL',
+                        yMax: 8,
+                        content: '01|5\n02|7\n03|6\n04|1'
+                    },
+                    {
+                        label: 'Spectrum Analyzer',
+                        type: 'spectrum',
+                        title: 'SIGNAL SPECTRUM',
+                        yLabel: 'dB',
+                        xLabel: 'FREQ',
+                        yMax: 8,
+                        content: '2 3 5 7 8 7 4 2 1 3 6 8 6 4 2'
+                    },
+                    {
+                        label: 'Telemetry Meters',
+                        type: 'meter',
+                        title: 'LIVE TELEMETRY',
+                        content: 'GATE STABILITY|44|WARN\nENTITY NOISE|79|ALERT\nDEAD-NET SYNC|63|LOCK\nCONTAINMENT|72|WARN'
+                    },
+                    {
+                        label: 'Heatmap Matrix',
+                        type: 'heatmap',
+                        title: 'CHAMBER HEATMAP',
+                        xLabel: '01 02 03 04 05',
+                        yLabel: 'A B C D',
+                        content: '1 2 2 3 1\n2 3 4 4 2\n1 3 4 3 1\n1 2 3 2 1'
+                    },
+                    {
+                        label: 'Network Route',
+                        type: 'network',
+                        title: 'NETWORK TOPOLOGY',
+                        content: 'CORE>BUS-A>LAB-01\nBUS-A>LAB-02\nCORE>ARCHIVE\nCORE>SEC>GATE>RELAY'
+                    },
+                    {
+                        label: 'EKG Trace',
+                        text: 'BIO TRACE  _____/\\/\\__________/\\/\\__________/\\/\\_____'
+                    }
+                ]
+            }
+        ];
+
+        const TEMPLATE_FIELDSETS = {
+            titleRows: [
+                { id: 'title', label: 'Panel title', type: 'text' },
+                { id: 'rows', label: 'Rows', type: 'textarea' }
+            ],
+            titleValues: [
+                { id: 'title', label: 'Panel title', type: 'text' },
+                { id: 'values', label: 'Values', type: 'textarea' },
+                { id: 'yMax', label: 'Y axis max', type: 'range', min: 4, max: 16, step: 1 }
+            ],
+            titleMatrix: [
+                { id: 'title', label: 'Panel title', type: 'text' },
+                { id: 'matrix', label: 'Matrix values', type: 'textarea' }
+            ]
+        };
+
+        // Schema-driven telemetry templates. Generated output remains static plain text for terminal safety.
+        const MESSAGE_TEMPLATES = [
+            { id: 'event-log', group: 'Logs', label: 'Event Log', generator: 'event-log', supportsPreviewAnimation: true, control: 'log-rows', data: { title: 'LIVE EVENT LOG', rows: '03:17:10|SYS|OK|Gate stabilization field nominal.\n03:17:12|NET|LOCK|Uplink sync to Dead-Net carrier.\n03:17:14|BIO|INFO|Subject ECHO-7 vitals elevated.\n03:17:18|ANOM|ALERT|Signal spike detected at depth 312m.' }, fields: TEMPLATE_FIELDSETS.titleRows },
+            { id: 'alarm-summary', group: 'Logs', label: 'Alarm Summary', generator: 'alarm-summary', supportsPreviewAnimation: false, control: 'log-rows', data: { title: 'ALARM SUMMARY', rows: 'A-104|WARN|Containment pressure drift|ACK PENDING\nB-019|INFO|Archive relay latency|MONITOR\nC-772|ALERT|Unclassified entity noise|ESCALATE' }, fields: TEMPLATE_FIELDSETS.titleRows },
+            { id: 'active-processes', group: 'Logs', label: 'Active Processes', generator: 'active-processes', supportsPreviewAnimation: true, control: 'rows-percent', data: { title: 'ACTIVE PROCESSES', rows: 'INDEXING FACILITY ARCHIVE|72|OK\nTRIANGULATING DEAD-NET RELAY|31|LOCK\nCALIBRATING SENSOR GRID|84|OK\nVERIFYING CREDENTIAL HASH|56|WARN' }, fields: TEMPLATE_FIELDSETS.titleRows },
+            { id: 'trace-log', group: 'Logs', label: 'Trace Log', generator: 'trace-log', supportsPreviewAnimation: true, control: 'log-rows', data: { title: 'TRACE LOG', rows: '0x1A2F|READ|sector.alpha|checksum ok\n0x1A30|SCAN|breach-vector|noise +02\n0x1A31|LOCK|credential hash|accepted\n0x1A32|DROP|packet ghost|retry queued' }, fields: TEMPLATE_FIELDSETS.titleRows },
+            { id: 'audit-log', group: 'Logs', label: 'Audit Log', generator: 'audit-log', supportsPreviewAnimation: false, control: 'log-rows', data: { title: 'ACCESS AUDIT', rows: '2084-05-24 03:16|EMPLOYEE|SEARCH|profit archive\n2084-05-24 03:17|ELEVATED|FSEARCH|manasphere\n2084-05-24 03:18|ADMIN|STATUS|facility map' }, fields: TEMPLATE_FIELDSETS.titleRows },
+
+            { id: 'progress-bars', group: 'Status/Meters', label: 'Progress Bars', generator: 'progress-bars', supportsPreviewAnimation: true, control: 'rows-percent', data: { title: 'PROCESS ARRAY', rows: 'INDEXING ARCHIVE|72|OK\nDECRYPTING SECURITY LOG|41|WARN\nSCANNING ENTITY RESIDUE|91|ALERT\nCONTACTING DEAD-NET NODE|22|LOCK' }, fields: TEMPLATE_FIELDSETS.titleRows },
+            { id: 'segmented-led-bars', group: 'Status/Meters', label: 'Segmented LED Bars', generator: 'segmented-led-bars', supportsPreviewAnimation: true, control: 'rows-percent', data: { title: 'LED BUS LEVELS', rows: 'POWER GRID|88|ONLINE\nUPLINK|54|DEGRADED\nARCHIVE BUS|76|ACTIVE\nSECURITY LAYER|100|LOCKED' }, fields: TEMPLATE_FIELDSETS.titleRows },
+            { id: 'bullet-chart', group: 'Status/Meters', label: 'Bullet Chart', generator: 'bullet-chart', supportsPreviewAnimation: false, control: 'rows-percent-target', data: { title: 'OPERATING LIMITS', rows: 'CORE TEMP|48|70\nPRESSURE|63|80\nSYNC|94|90\nNOISE|78|60' }, fields: TEMPLATE_FIELDSETS.titleRows },
+            { id: 'numeric-readouts', group: 'Status/Meters', label: 'Numeric Readouts', generator: 'numeric-readouts', supportsPreviewAnimation: false, control: 'log-rows', data: { title: 'NUMERIC READOUTS', rows: 'REACTOR OUTPUT|87.6|%|OK\nCONTAINMENT PRESSURE|2.37|ATM|WARN\nCORE TEMP|612|C|ALERT\nNEUTRON FLUX|6.21e13|n/cm/s|OK' }, fields: TEMPLATE_FIELDSETS.titleRows },
+            { id: 'signal-quality', group: 'Status/Meters', label: 'Signal Quality', generator: 'signal-quality', supportsPreviewAnimation: true, control: 'rows-percent', data: { title: 'SIGNAL QUALITY', rows: 'CARRIER LOCK|91|CLEAN\nSNR|74|NOMINAL\nPHASE JITTER|18|LOW\nDEAD-NET SYNC|63|DEGRADED' }, fields: TEMPLATE_FIELDSETS.titleRows },
+            { id: 'packet-loss', group: 'Status/Meters', label: 'Packet Loss', generator: 'packet-loss', supportsPreviewAnimation: true, control: 'rows-percent', data: { title: 'PACKET LOSS MONITOR', rows: 'UPLINK LOSS|2|OK\nPACKET DECAY|14|WARN\nCRC FAULTS|6|OK\nGHOST REPLIES|27|ALERT' }, fields: TEMPLATE_FIELDSETS.titleRows },
+            { id: 'system-status', group: 'Status/Meters', label: 'System Status', generator: 'system-status', supportsPreviewAnimation: false, control: 'rows-percent', data: { title: 'SYSTEM STATUS', rows: 'CORE TEMP|48|OK\nPOWER GRID|100|ONLINE\nUPLINK|54|DEGRADED\nARCHIVE BUS|80|ACTIVE\nSECURITY LAYER|100|LOCKED' }, fields: TEMPLATE_FIELDSETS.titleRows },
+
+            { id: 'sparkline', group: 'Time-Series', label: 'Sparkline', generator: 'sparkline', supportsPreviewAnimation: true, control: 'series', data: { title: 'SPARKLINE TRACE', values: '2 3 5 4 7 8 6 3 2 4 5 8 7 5 3 2', yMax: 8 }, fields: TEMPLATE_FIELDSETS.titleValues },
+            { id: 'strip-chart', group: 'Time-Series', label: 'Strip Chart', generator: 'strip-chart', supportsPreviewAnimation: true, control: 'series', data: { title: 'STRIP CHART', values: '4 4 5 6 5 4 3 2 3 4 6 8 7 5 4 3 4 6', yMax: 8 }, fields: TEMPLATE_FIELDSETS.titleValues },
+            { id: 'stacked-strip-chart', group: 'Time-Series', label: 'Stacked Strip Chart', generator: 'stacked-strip-chart', supportsPreviewAnimation: true, control: 'series-rows', data: { title: 'STACKED TELEMETRY', rows: 'MANA|2 3 4 6 8 7 5 3 2 4 6 8\nNOISE|1 2 3 3 5 8 6 4 3 2 4 6\nSYNC|7 7 6 6 5 5 6 7 8 8 7 7', yMax: 8 }, fields: [{ id: 'title', label: 'Panel title', type: 'text' }, { id: 'rows', label: 'Rows: LABEL|VALUES', type: 'textarea' }, { id: 'yMax', label: 'Y axis max', type: 'range', min: 4, max: 16, step: 1 }] },
+            { id: 'line-chart', group: 'Time-Series', label: 'Line Chart', generator: 'line-chart', supportsPreviewAnimation: true, control: 'series', data: { title: 'LINE CHART', values: '1 2 4 5 7 8 6 5 4 3 5 6 8 7 4 2', yMax: 8 }, fields: TEMPLATE_FIELDSETS.titleValues },
+            { id: 'step-chart', group: 'Time-Series', label: 'Step Chart', generator: 'step-chart', supportsPreviewAnimation: true, control: 'series', data: { title: 'STEP STATE CHART', values: '1 1 2 2 4 4 4 6 6 3 3 5 5 8 8 6', yMax: 8 }, fields: TEMPLATE_FIELDSETS.titleValues },
+            { id: 'pulse-chart', group: 'Time-Series', label: 'Pulse Chart', generator: 'pulse-chart', supportsPreviewAnimation: true, control: 'series', data: { title: 'PULSE CHART', values: '1 1 1 6 8 3 1 1 1 1 7 8 4 1 1 1', yMax: 8 }, fields: TEMPLATE_FIELDSETS.titleValues },
+
+            { id: 'oscilloscope', group: 'Signals', label: 'Oscilloscope', generator: 'oscilloscope', supportsPreviewAnimation: true, control: 'series-rows', data: { title: 'SIGNAL OSCILLOSCOPE // CH-A / CH-B', rows: 'CH-A|4 5 6 8 7 5 4 3 4 6 8 7 5 4 3 4\nCH-B|2 2 3 5 4 2 1 2 3 3 5 4 2 1 2 3', yMax: 8 }, fields: [{ id: 'title', label: 'Panel title', type: 'text' }, { id: 'rows', label: 'Rows: CHANNEL|VALUES', type: 'textarea' }, { id: 'yMax', label: 'Y axis max', type: 'range', min: 4, max: 16, step: 1 }] },
+            { id: 'ecg-trace', group: 'Signals', label: 'ECG Trace', generator: 'ecg-trace', supportsPreviewAnimation: true, control: 'log-rows', data: { title: 'BIOSCAN ARRAY // CREW VITALS', rows: 'UNIT-01 PULSE|118|OK\nUNIT-02 RESP|16|OK\nUNIT-03 NEUR|2.8|WARN\nUNIT-04 STRESS|74|ALERT' }, fields: TEMPLATE_FIELDSETS.titleRows },
+            { id: 'seismograph', group: 'Signals', label: 'Seismograph', generator: 'seismograph', supportsPreviewAnimation: true, control: 'series', data: { title: 'SUBSTRATE TREMOR', values: '2 4 2 1 3 6 4 2 5 8 6 3 2 4 7 5 3 1', yMax: 8 }, fields: TEMPLATE_FIELDSETS.titleValues },
+            { id: 'waveform', group: 'Signals', label: 'Waveform', generator: 'waveform', supportsPreviewAnimation: true, control: 'series', data: { title: 'WAVEFORM DISPLAY', values: '4 5 6 7 8 7 6 5 4 3 2 1 2 3 4 5 6 7', yMax: 8 }, fields: TEMPLATE_FIELDSETS.titleValues },
+            { id: 'a-scope-radar', group: 'Signals', label: 'A-Scope Radar', generator: 'a-scope-radar', supportsPreviewAnimation: true, control: 'series', data: { title: 'A-SCOPE RADAR', values: '1 1 2 3 7 2 1 2 4 8 3 1 1 2 5 3 1', yMax: 8 }, fields: TEMPLATE_FIELDSETS.titleValues },
+
+            { id: 'waterfall', group: 'Matrix/Intensity', label: 'Waterfall', generator: 'waterfall', supportsPreviewAnimation: true, control: 'matrix', data: { title: 'SPECTRUM WATERFALL', matrix: '1 2 1 2 3 2 1 3 4 3 2 1\n2 1 2 3 2 1 3 4 4 3 1 2\n1 2 3 2 4 4 3 2 3 4 2 1\n2 3 4 4 3 2 1 2 3 4 4 2' }, fields: TEMPLATE_FIELDSETS.titleMatrix },
+            { id: 'spectrogram-matrix', group: 'Matrix/Intensity', label: 'Spectrogram Matrix', generator: 'spectrogram-matrix', supportsPreviewAnimation: true, control: 'matrix', data: { title: 'SPECTROGRAM MATRIX', matrix: '1 1 2 2 3 4 3 2 1 2\n1 2 2 3 4 4 4 3 2 1\n2 2 3 4 4 3 2 2 1 1\n1 3 4 4 3 2 1 2 3 2' }, fields: TEMPLATE_FIELDSETS.titleMatrix },
+            { id: 'heatmap-matrix', group: 'Matrix/Intensity', label: 'Heatmap Matrix', generator: 'heatmap-matrix', supportsPreviewAnimation: false, control: 'matrix', data: { title: 'CHAMBER HEATMAP // PRESSURE FIELD', matrix: '1 1 2 2 3 3 2 1\n1 2 2 3 4 4 3 2\n2 2 3 4 4 4 3 2\n2 3 4 4 4 4 3 2\n1 2 3 4 4 3 2 1\n1 1 2 3 3 2 1 1' }, fields: TEMPLATE_FIELDSETS.titleMatrix },
+            { id: 'health-matrix', group: 'Matrix/Intensity', label: 'Health Matrix', generator: 'health-matrix', supportsPreviewAnimation: false, control: 'log-rows', data: { title: 'FACILITY HEALTH MATRIX', rows: 'CORE|OK|OK|WARN|OK\nLAB|OK|WARN|ALERT|LOCK\nARCHIVE|OK|OK|OK|DEGRADED\nGATE|WARN|ALERT|LOCK|UNKNOWN' }, fields: TEMPLATE_FIELDSETS.titleRows },
+            { id: 'raster-event-plot', group: 'Matrix/Intensity', label: 'Raster Event Plot', generator: 'raster-event-plot', supportsPreviewAnimation: true, control: 'matrix', data: { title: 'RASTER EVENT PLOT', matrix: '0 0 1 0 0 1 0 1 0 0 0 1\n1 0 0 0 1 0 0 0 0 1 0 0\n0 1 0 1 0 0 1 0 0 0 1 0\n0 0 0 1 0 0 0 1 0 1 0 0' }, fields: TEMPLATE_FIELDSETS.titleMatrix },
+            { id: 'contour-map', group: 'Matrix/Intensity', label: 'Contour Map', generator: 'contour-map', supportsPreviewAnimation: true, control: 'matrix', data: { title: 'CONTOUR MAP // MANA DENSITY', matrix: '1 1 2 2 2 1 1\n1 2 3 3 3 2 1\n2 3 4 4 4 3 2\n2 3 4 5 4 3 2\n1 2 3 4 3 2 1\n1 1 2 2 2 1 1' }, fields: TEMPLATE_FIELDSETS.titleMatrix },
+
+            { id: 'facility-grid', group: 'Schematics', label: 'Facility Grid', generator: 'facility-grid', supportsPreviewAnimation: false, control: 'log-rows', data: { title: 'FACILITY GRID', rows: 'A1|EMPTY|A2|ACTIVE|A3|SEALED\nB1|ACTIVE|B2|ALERT|B3|OFFLINE\nC1|EMPTY|C2|ACTIVE|C3|BREACH\nD1|LOCKED|D2|LOCKED|D3|UNKNOWN' }, fields: TEMPLATE_FIELDSETS.titleRows },
+            { id: 'network-topology', group: 'Schematics', label: 'Network Topology', generator: 'network-topology', supportsPreviewAnimation: true, control: 'none', data: { title: 'NETWORK TOPOLOGY', rows: 'CORE>BUS-A>LAB-01\nBUS-A>LAB-02\nCORE>ARCHIVE\nCORE>SEC>GATE>RELAY' }, fields: TEMPLATE_FIELDSETS.titleRows },
+            { id: 'process-flow', group: 'Schematics', label: 'Process Flow', generator: 'process-flow', supportsPreviewAnimation: false, control: 'log-rows', data: { title: 'PROCESS FLOW', rows: 'INTAKE|FILTER|REAGENT MIX|OK\nREAGENT MIX|GATE CORE|PRESSURE|WARN\nGATE CORE|CONTAINMENT|SEAL|LOCKED\nCONTAINMENT|ARCHIVE|LOG|OK' }, fields: TEMPLATE_FIELDSETS.titleRows },
+            { id: 'route-map', group: 'Schematics', label: 'Route Map', generator: 'route-map', supportsPreviewAnimation: false, control: 'log-rows', data: { title: 'ROUTE MAP', rows: 'BRE-01 GATEHEAD|02.1km|CLEAR\nBRE-02 RED HARVEST|04.8km|WARN\nBRE-03 FIREWATCH|07.4km|ACTIVE\nBRE-04 BLACKWATER|11.2km|HAZARD\nBRE-06 STOCKADE|14.9km|LOCKED' }, fields: TEMPLATE_FIELDSETS.titleRows },
+            { id: 'radar-ppi-static', group: 'Schematics', label: 'Radar PPI Static', generator: 'radar-ppi-static', supportsPreviewAnimation: true, control: 'log-rows', data: { title: 'TACTICAL SWEEP // PPI', rows: '01|△|1.2km|030\n02|□|2.8km|110\n03|◇|4.1km|220\n04|○|1.7km|300' }, fields: TEMPLATE_FIELDSETS.titleRows },
+            { id: 'compass-bearing', group: 'Schematics', label: 'Compass Bearing', generator: 'compass-bearing', supportsPreviewAnimation: true, control: 'none', data: { title: 'COMPASS BEARING', heading: '274', label: 'DEAD-NET RELAY' }, fields: [{ id: 'title', label: 'Panel title', type: 'text' }, { id: 'heading', label: 'Heading degrees', type: 'range', min: 0, max: 359, step: 1 }, { id: 'label', label: 'Target label', type: 'text' }] },
+
+            { id: 'hex-dump', group: 'Technical Dumps', label: 'Hex Dump', generator: 'hex-dump', supportsPreviewAnimation: false, control: 'none', data: { title: 'HEX DUMP', text: 'ARES BLACK DESERT DATA CHANNEL' }, fields: [{ id: 'title', label: 'Panel title', type: 'text' }, { id: 'text', label: 'Source text', type: 'textarea' }] },
+            { id: 'memory-map', group: 'Technical Dumps', label: 'Memory Map', generator: 'memory-map', supportsPreviewAnimation: false, control: 'log-rows', data: { title: 'MEMORY MAP', rows: '0x0000|BOOT ROM|LOCKED\n0x1000|ARCHIVE INDEX|ACTIVE\n0x2400|ENTITY CACHE|CORRUPT\n0x4000|USER SESSION|LIVE\n0x7F00|BLACK BOX|SEALED' }, fields: TEMPLATE_FIELDSETS.titleRows },
+            { id: 'register-display', group: 'Technical Dumps', label: 'Register Display', generator: 'register-display', supportsPreviewAnimation: true, control: 'log-rows', data: { title: 'REGISTER DISPLAY', rows: 'AX|0x13F7\nBX|0x00C4\nCX|0xA91D\nDX|0xDEAD\nSP|0x7C00\nFLAGS|Z0 C1 N0 V1' }, fields: TEMPLATE_FIELDSETS.titleRows }
+        ];
+
+        MESSAGE_TEMPLATES.forEach(template => {
+            template.type = template.type || template.generator;
+            template.title = template.title || template.data?.title || template.label;
+        });
+
+        const state = {
+            metadata: {},
+            entries: [],
+            selectedIndex: 0,
+            sourceName: 'database1.md'
+        };
+
+        const els = {};
+        let zipLibPromise = null;
+        let activeTemplate = null;
+
+        function byId(id) {
+            return document.getElementById(id);
+        }
+
+        function databaseZipPassword() {
+            return DATABASE_ZIP_KEY_HEX_PARTS
+                .map(part => String(part || '').match(/../g) || [])
+                .flat()
+                .map(hex => String.fromCharCode(Number.parseInt(hex, 16)))
+                .join('');
+        }
+
+        function loadZipLibrary() {
+            if (window.zip && window.zip.ZipReader) return Promise.resolve(window.zip);
+            if (zipLibPromise) return zipLibPromise;
+            zipLibPromise = new Promise((resolve, reject) => {
+                const existing = document.querySelector('script[data-editor-lib="zip"]');
+                if (existing) {
+                    existing.addEventListener('load', () => resolve(window.zip), { once: true });
+                    existing.addEventListener('error', () => reject(new Error('ZIP library failed to load')), { once: true });
+                    return;
+                }
+                const script = document.createElement('script');
+                script.src = ZIP_SCRIPT_URL;
+                script.defer = true;
+                script.dataset.editorLib = 'zip';
+                script.onload = () => resolve(window.zip);
+                script.onerror = () => reject(new Error('ZIP library failed to load'));
+                document.head.appendChild(script);
+            }).then(zipLib => {
+                if (!zipLib || !zipLib.ZipReader || !zipLib.ZipWriter || !zipLib.BlobReader || !zipLib.BlobWriter || !zipLib.TextReader || !zipLib.TextWriter) {
+                    throw new Error('ZIP support unavailable');
+                }
+                return zipLib;
+            }).catch(error => {
+                zipLibPromise = null;
+                throw error;
+            });
+            return zipLibPromise;
+        }
+
+        function isZipPackage(fileName = '') {
+            return /\.zip$/i.test(String(fileName || ''));
+        }
+
+        function isDatPackage(fileName = '') {
+            return /\.(dat|db|bin)$/i.test(String(fileName || ''));
+        }
+
+        function isTextDatabasePackage(fileName = '') {
+            return /\.(md|markdown|txt)$/i.test(String(fileName || ''));
+        }
+
+        function databaseFileName(item = {}) {
+            return String(item.file || item.filename || '')
+                .trim()
+                .replace(/\\/g, '/')
+                .replace(/^databases\//i, '');
+        }
+
+        function databasePathForItem(item = {}) {
+            const file = databaseFileName(item);
+            if (!file || file.includes('..') || file.startsWith('/') || /^[a-z][a-z0-9+.-]*:/i.test(file)) return '';
+            if (!/\.(md|markdown|txt|zip|dat|db|bin)$/i.test(file)) return '';
+            return `databases/${file}`;
+        }
+
+        function zipEntryName(entry = {}) {
+            return String(entry.filename || entry.name || '').replace(/\\/g, '/');
+        }
+
+        function normalizeZipEntryName(name = '') {
+            return String(name || '').replace(/\\/g, '/').replace(/^\.\//, '').toLowerCase();
+        }
+
+        function selectZipDatabaseEntry(entries = [], preferredName = '') {
+            const files = entries.filter(entry => !entry.directory && zipEntryName(entry));
+            const preferred = normalizeZipEntryName(preferredName);
+            if (preferred) {
+                const match = files.find(entry => {
+                    const name = normalizeZipEntryName(zipEntryName(entry));
+                    return name === preferred || name.endsWith(`/${preferred}`);
+                });
+                if (match) return match;
+            }
+            return files.find(entry => isTextDatabasePackage(zipEntryName(entry))) || null;
+        }
+
+        function normalizeKey(key) {
+            return String(key || '').trim().toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9._-]/g, '');
+        }
+
+        function cleanValue(value) {
+            let cleaned = String(value || '').trim();
+            if ((cleaned.startsWith('"') && cleaned.endsWith('"')) || (cleaned.startsWith("'") && cleaned.endsWith("'"))) {
+                cleaned = cleaned.slice(1, -1);
+            }
+            return cleaned.replace(/\\n/g, '\n');
+        }
+
+        function setStatus(message, tone = 'ok') {
+            els.status.textContent = message;
+            els.status.style.color = tone === 'error' ? 'var(--red)' : tone === 'warn' ? 'var(--amber)' : 'var(--cyan)';
+        }
+
+        function parseMetadata(lines) {
+            const metadata = {};
+            lines.forEach(line => {
+                const pair = line.match(/^([a-z0-9_.-]+)\s*:\s*(.*)$/i);
+                if (pair) metadata[normalizeKey(pair[1])] = cleanValue(pair[2]);
+            });
+            return metadata;
+        }
+
+        function parseDatabaseMarkdown(text, source = 'database.md') {
+            const clean = String(text || '').replace(/\r/g, '').replace(/<!--[\s\S]*?-->/g, '');
+            const lines = clean.split('\n');
+            const metadataLines = [];
+            let startIndex = 0;
+            if (lines[0] && lines[0].trim() === '---') {
+                for (let i = 1; i < lines.length; i++) {
+                    if (lines[i].trim() === '---') {
+                        startIndex = i + 1;
+                        break;
+                    }
+                    metadataLines.push(lines[i]);
+                }
+            }
+
+            const metadata = parseMetadata(metadataLines);
+            const entries = [];
+            let category = 'GENERAL';
+            let current = null;
+            let bodyMode = false;
+
+            function finishEntry() {
+                if (!current) return;
+                current.title = current.title || current.id || 'Untitled Entry';
+                current.category = (current.category || category || 'GENERAL').toUpperCase();
+                current.body = current.bodyLines.join('\n').trim();
+                delete current.bodyLines;
+                entries.push(current);
+                current = null;
+                bodyMode = false;
+            }
+
+            for (let i = startIndex; i < lines.length; i++) {
+                const raw = lines[i];
+                const line = raw.trim();
+                if (!line) {
+                    if (bodyMode && current) current.bodyLines.push('');
+                    continue;
+                }
+
+                const categoryMatch = line.match(/^##\s+Category\s*:\s*(.+)$/i);
+                if (categoryMatch) {
+                    finishEntry();
+                    category = categoryMatch[1].trim().toUpperCase();
+                    continue;
+                }
+
+                const entryMatch = line.match(/^###\s+(?:Entry\s*:\s*)?(.+)$/i);
+                if (entryMatch) {
+                    finishEntry();
+                    current = {
+                        id: '',
+                        title: entryMatch[1].trim(),
+                        category,
+                        tags: '',
+                        clearance: '1',
+                        related: '',
+                        redacted: '',
+                        bodyLines: []
+                    };
+                    bodyMode = false;
+                    continue;
+                }
+
+                if (!current) continue;
+                if (/^body\s*:\s*$/i.test(line)) {
+                    bodyMode = true;
+                    continue;
+                }
+
+                const pair = line.match(/^([a-z0-9_.-]+)\s*:\s*(.*)$/i);
+                if (pair && !bodyMode) {
+                    const key = normalizeKey(pair[1]);
+                    const value = cleanValue(pair[2]);
+                    if (key === 'keywords') current.tags = value;
+                    else if (key === 'clearance_level') current.clearance = value;
+                    else current[key] = value;
+                    continue;
+                }
+
+                current.bodyLines.push(raw.replace(/^\s{0,4}/, ''));
+            }
+            finishEntry();
+
+            return { metadata, entries, source };
+        }
+
+        function parseDatabaseText(text, sourceName = 'database.md') {
+            const parsed = parseDatabaseMarkdown(text, sourceName);
+            if (!parsed.entries.length) throw new Error('No entries found');
+            return parsed;
+        }
+
+        async function readZipDatabasePackage(blob, item = {}, sourceName = 'database.zip') {
+            const zipLib = await loadZipLibrary();
+            const reader = new zipLib.ZipReader(new zipLib.BlobReader(blob), { useWebWorkers: false });
+            try {
+                const entries = await reader.getEntries();
+                const entry = selectZipDatabaseEntry(entries, item.innerFile || item.entry || item.databaseFile);
+                if (!entry) throw new Error('No Markdown database found in ZIP package');
+                const content = await entry.getData(new zipLib.TextWriter(), {
+                    password: databaseZipPassword(),
+                    useWebWorkers: false
+                });
+                const entryName = zipEntryName(entry);
+                return {
+                    content,
+                    entryName,
+                    source: `${sourceName}:${entryName}`
+                };
+            } finally {
+                await reader.close();
+            }
+        }
+
+        function serializeDatabase() {
+            syncEntryFromForm();
+            syncMetadataFromForm();
+            const metadata = state.metadata;
+            const lines = [
+                '---',
+                `id: ${metadata.id || 'database'}`,
+                `title: ${metadata.title || 'Untitled Database'}`,
+                `description: ${metadata.description || ''}`,
+                `password: ${metadata.password || metadata.id || 'database'}`,
+                '---',
+                '',
+                '<!--',
+                'DATABASE EDITING NOTES',
+                'Change password above to change the roleplay database password.',
+                'Add categories with: ## Category: CATEGORY NAME',
+                'Add entries with: ### Entry: Entry Title',
+                'Supported fields: id, title, category, tags, clearance, related, redacted, body.',
+                'Everything after body: belongs to the entry body until the next entry or category.',
+                'These comments are stripped before display.',
+                '-->',
+                ''
+            ];
+
+            const grouped = new Map();
+            state.entries.forEach(entry => {
+                const category = (entry.category || 'GENERAL').toUpperCase();
+                if (!grouped.has(category)) grouped.set(category, []);
+                grouped.get(category).push(entry);
+            });
+
+            grouped.forEach((entries, category) => {
+                lines.push(`## Category: ${category}`, '');
+                entries.forEach(entry => {
+                    lines.push(`### Entry: ${entry.title || 'Untitled Entry'}`);
+                    lines.push(`id: ${entry.id || slugify(entry.title || 'entry')}`);
+                    lines.push(`title: ${entry.title || 'Untitled Entry'}`);
+                    lines.push(`category: ${category}`);
+                    lines.push(`tags: ${entry.tags || ''}`);
+                    lines.push(`clearance: ${entry.clearance || '1'}`);
+                    if (entry.related) lines.push(`related: ${entry.related}`);
+                    if (entry.redacted) lines.push(`redacted: ${entry.redacted}`);
+                    lines.push('body:');
+                    lines.push(entry.body || 'NO BODY TEXT AVAILABLE.');
+                    lines.push('');
+                });
+            });
+
+            return lines.join('\n').trim() + '\n';
+        }
+
+        function slugify(value) {
+            return String(value || 'entry').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'entry';
+        }
+
+        function applyParsedDatabase(parsed, sourceName) {
+            state.metadata = {
+                id: parsed.metadata.id || slugify(parsed.metadata.title || sourceName || 'database'),
+                title: parsed.metadata.title || 'Untitled Database',
+                description: parsed.metadata.description || '',
+                password: parsed.metadata.password || parsed.metadata.id || 'database'
+            };
+            state.entries = parsed.entries.length ? parsed.entries : [{
+                id: 'new-entry',
+                title: 'New Entry',
+                category: 'GENERAL',
+                tags: '',
+                clearance: '1',
+                related: '',
+                redacted: '',
+                body: 'Entry body text.'
+            }];
+            state.selectedIndex = 0;
+            state.sourceName = sourceName || parsed.source || 'database.md';
+            fillMetadataForm();
+            renderEntryList();
+            fillEntryForm();
+            renderPreview();
+        }
+
+        function fillMetadataForm() {
+            els.metaId.value = state.metadata.id || '';
+            els.metaTitle.value = state.metadata.title || '';
+            els.metaDescription.value = state.metadata.description || '';
+            els.metaPassword.value = state.metadata.password || '';
+        }
+
+        function syncMetadataFromForm() {
+            state.metadata.id = els.metaId.value.trim() || 'database';
+            state.metadata.title = els.metaTitle.value.trim() || 'Untitled Database';
+            state.metadata.description = els.metaDescription.value.trim();
+            state.metadata.password = els.metaPassword.value.trim() || state.metadata.id;
+        }
+
+        function currentEntry() {
+            return state.entries[state.selectedIndex] || null;
+        }
+
+        function fillEntryForm() {
+            const entry = currentEntry();
+            const disabled = !entry;
+            ['entryId', 'entryTitle', 'entryCategory', 'entryTags', 'entryRelated', 'entryRedacted', 'entryBody'].forEach(id => {
+                els[id].disabled = disabled;
+            });
+            els.entryClearance.disabled = disabled;
+            if (!entry) return;
+            els.entryId.value = entry.id || '';
+            els.entryTitle.value = entry.title || '';
+            els.entryCategory.value = entry.category || 'GENERAL';
+            els.entryClearance.value = entry.clearance || '1';
+            els.entryTags.value = entry.tags || '';
+            els.entryRelated.value = entry.related || '';
+            els.entryRedacted.value = entry.redacted || '';
+            els.entryBody.value = entry.body || '';
+        }
+
+        function syncEntryFromForm() {
+            const entry = currentEntry();
+            if (!entry) return;
+            entry.id = els.entryId.value.trim() || slugify(els.entryTitle.value);
+            entry.title = els.entryTitle.value.trim() || 'Untitled Entry';
+            entry.category = (els.entryCategory.value.trim() || 'GENERAL').toUpperCase();
+            entry.clearance = els.entryClearance.value || '1';
+            entry.tags = els.entryTags.value.trim();
+            entry.related = els.entryRelated.value.trim();
+            entry.redacted = els.entryRedacted.value.trim();
+            entry.body = els.entryBody.value.trim();
+        }
+
+        function renderEntryList() {
+            els.entryList.textContent = '';
+            const categories = new Set();
+            state.entries.forEach(entry => categories.add((entry.category || 'GENERAL').toUpperCase()));
+            els.categoryList.textContent = '';
+            categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category;
+                els.categoryList.appendChild(option);
+            });
+
+            state.entries.forEach((entry, index) => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = `entry-btn ${index === state.selectedIndex ? 'active' : ''}`.trim();
+                button.textContent = `[${entry.category || 'GENERAL'}] ${entry.title || 'Untitled Entry'}`;
+                button.addEventListener('click', () => {
+                    syncEntryFromForm();
+                    state.selectedIndex = index;
+                    renderEntryList();
+                    fillEntryForm();
+                    renderPreview();
+                });
+                els.entryList.appendChild(button);
+            });
+        }
+
+        function addEntry() {
+            syncEntryFromForm();
+            state.entries.push({
+                id: `entry-${state.entries.length + 1}`,
+                title: 'New Entry',
+                category: 'GENERAL',
+                tags: '',
+                clearance: '1',
+                related: '',
+                redacted: '',
+                body: 'Entry body text.'
+            });
+            state.selectedIndex = state.entries.length - 1;
+            renderEntryList();
+            fillEntryForm();
+            renderPreview();
+            setStatus('New entry added.');
+        }
+
+        function duplicateEntry() {
+            const entry = currentEntry();
+            if (!entry) return;
+            syncEntryFromForm();
+            const copy = { ...entry, id: `${entry.id || 'entry'}-copy`, title: `${entry.title || 'Entry'} Copy` };
+            state.entries.splice(state.selectedIndex + 1, 0, copy);
+            state.selectedIndex += 1;
+            renderEntryList();
+            fillEntryForm();
+            renderPreview();
+            setStatus('Entry duplicated.');
+        }
+
+        function removeEntry() {
+            if (state.entries.length <= 1) {
+                setStatus('At least one entry is required.', 'warn');
+                return;
+            }
+            state.entries.splice(state.selectedIndex, 1);
+            state.selectedIndex = Math.max(0, state.selectedIndex - 1);
+            renderEntryList();
+            fillEntryForm();
+            renderPreview();
+            setStatus('Entry removed.');
+        }
+
+        function insertTextAtCursor(textarea, text) {
+            if (!textarea || textarea.disabled) return;
+            const value = textarea.value || '';
+            const start = Number.isFinite(textarea.selectionStart) ? textarea.selectionStart : value.length;
+            const end = Number.isFinite(textarea.selectionEnd) ? textarea.selectionEnd : start;
+            const before = value.slice(0, start);
+            const after = value.slice(end);
+            const prefix = before && !before.endsWith('\n') ? '\n' : '';
+            const suffix = after && !after.startsWith('\n') ? '\n' : '';
+            const insertion = `${prefix}${text}${suffix}`;
+            textarea.value = `${before}${insertion}${after}`;
+            const caret = before.length + insertion.length;
+            textarea.focus();
+            textarea.setSelectionRange(caret, caret);
+            textarea.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+
+        function visibleLength(value) {
+            return Array.from(String(value || '')).length;
+        }
+
+        function padVisible(value, width) {
+            const text = String(value || '');
+            return text + ' '.repeat(Math.max(0, width - visibleLength(text)));
+        }
+
+        function normalizeTemplateLines(text) {
+            const lines = String(text || '').replace(/\r/g, '').split('\n');
+            return lines.length ? lines : [''];
+        }
+
+        function frameTitleLine(title, width, glyphs) {
+            const cleanTitle = String(title || '').trim();
+            const innerWidth = width + 2;
+            if (!cleanTitle) return `${glyphs.tl}${glyphs.h.repeat(innerWidth)}${glyphs.tr}`;
+            const titleText = ` ${cleanTitle} `;
+            const prefix = glyphs.h;
+            const suffix = glyphs.h.repeat(Math.max(1, innerWidth - visibleLength(prefix) - visibleLength(titleText)));
+            return `${glyphs.tl}${prefix}${titleText}${suffix}${glyphs.tr}`;
+        }
+
+        function buildBoxTemplate(template, title, content) {
+            const glyphs = template.type === 'frame'
+                ? { tl: '╔', tr: '╗', bl: '╚', br: '╝', h: '═', v: '║' }
+                : { tl: '┌', tr: '┐', bl: '└', br: '┘', h: '─', v: '│' };
+            const lines = normalizeTemplateLines(content);
+            const contentWidth = Math.max(
+                18,
+                visibleLength(String(title || '').trim()) + 2,
+                ...lines.map(visibleLength)
+            );
+            return [
+                frameTitleLine(title, contentWidth, glyphs),
+                ...lines.map(line => `${glyphs.v} ${padVisible(line, contentWidth)} ${glyphs.v}`),
+                `${glyphs.bl}${glyphs.h.repeat(contentWidth + 2)}${glyphs.br}`
+            ].join('\n');
+        }
+
+        function buildChartTemplate(title, content) {
+            const rows = normalizeTemplateLines(content)
+                .map(line => {
+                    const [label, rawValue = '0'] = line.split('|');
+                    const value = Math.max(0, Math.min(100, Number.parseFloat(rawValue) || 0));
+                    return { label: String(label || 'VALUE').trim(), value };
+                });
+            const labelWidth = Math.max(8, ...rows.map(row => visibleLength(row.label)));
+            const chartLines = rows.map(row => {
+                const filled = Math.round(row.value / 10);
+                return `${padVisible(row.label.toUpperCase(), labelWidth)} [${'█'.repeat(filled)}${'░'.repeat(10 - filled)}] ${String(Math.round(row.value)).padStart(3, ' ')}%`;
+            });
+            return buildBoxTemplate({ type: 'frame' }, title || 'STATUS CHART', chartLines.join('\n'));
+        }
+
+        function buildPlotTemplate(title, content) {
+            const values = normalizeTemplateLines(content)
+                .map(line => Math.max(0, Math.min(8, Number.parseFloat(line) || 0)));
+            const max = Math.max(8, ...values, 1);
+            const rows = [];
+            for (let level = max; level >= 1; level--) {
+                rows.push(`${String(level).padStart(2, '0')} │ ${values.map(value => value >= level ? '█' : ' ').join('   ')}`);
+            }
+            rows.push(`   └${'─'.repeat(Math.max(10, values.length * 4))}`);
+            rows.push(`    ${values.map((_, index) => String(index + 1).padStart(2, '0')).join('  ')}`);
+            return [String(title || 'ASCII PLOT').toUpperCase(), ...rows].join('\n');
+        }
+
+        function parseAxisMax(value, fallback = 8) {
+            const number = Math.round(Number.parseFloat(value));
+            return Math.max(1, Math.min(99, Number.isFinite(number) ? number : fallback));
+        }
+
+        function splitTemplateValues(content) {
+            return String(content || '')
+                .replace(/,/g, ' ')
+                .split(/\s+/)
+                .map(value => Number.parseFloat(value))
+                .filter(Number.isFinite);
+        }
+
+        function updateTemplateRawData(lines) {
+            const bodyInput = byId('templateEditContent');
+            if (!bodyInput) return;
+            bodyInput.value = lines.join('\n');
+            updateTemplateEditorPreview();
+        }
+
+        function makeTemplateControlRow(labelText, value, min, max, step, onChange) {
+            const row = document.createElement('div');
+            row.className = 'template-control-row';
+
+            const label = document.createElement('div');
+            label.className = 'template-control-label';
+            label.textContent = labelText;
+            label.title = labelText;
+
+            const slider = document.createElement('input');
+            slider.type = 'range';
+            slider.min = String(min);
+            slider.max = String(max);
+            slider.step = String(step);
+            slider.value = String(value);
+
+            const number = document.createElement('input');
+            number.type = 'number';
+            number.min = String(min);
+            number.max = String(max);
+            number.step = String(step);
+            number.value = String(value);
+
+            const commit = rawValue => {
+                const next = Math.max(min, Math.min(max, Number.parseFloat(rawValue) || 0));
+                slider.value = String(next);
+                number.value = String(next);
+                onChange(next);
+            };
+            slider.addEventListener('input', () => commit(slider.value));
+            number.addEventListener('input', () => commit(number.value));
+
+            row.append(label, slider, number);
+            return row;
+        }
+
+        function parseLabeledNumericRows(content, fallbackPrefix = 'ROW') {
+            return normalizeTemplateLines(content).map((line, index) => {
+                const parts = line.includes('|') ? line.split('|') : [`${fallbackPrefix}-${index + 1}`, line];
+                return {
+                    label: String(parts[0] || `${fallbackPrefix}-${index + 1}`).trim(),
+                    value: Number.parseFloat(parts[1]) || 0,
+                    extra: parts.slice(2).join('|')
+                };
+            });
+        }
+
+        function renderBarPlotControls(host, content) {
+            const yMax = parseAxisMax(templateOptionValue('YMax', activeTemplate?.yMax || 8), 8);
+            const rows = parseLabeledNumericRows(content, 'BAR');
+            rows.forEach((row, index) => {
+                host.appendChild(makeTemplateControlRow(row.label || `BAR ${index + 1}`, row.value, 0, yMax, 1, next => {
+                    rows[index].value = next;
+                    updateTemplateRawData(rows.map(item => `${item.label}|${item.value}`));
+                    renderTemplateValueControls();
+                }));
+            });
+        }
+
+        function renderChartControls(host, content) {
+            const rows = parseLabeledNumericRows(content, 'METER');
+            rows.forEach((row, index) => {
+                host.appendChild(makeTemplateControlRow(row.label || `METER ${index + 1}`, row.value, 0, 100, 1, next => {
+                    rows[index].value = next;
+                    updateTemplateRawData(rows.map(item => `${item.label}|${item.value}${item.extra ? `|${item.extra}` : ''}`));
+                    renderTemplateValueControls();
+                }));
+            });
+        }
+
+        function renderSpectrumControls(host, content) {
+            const yMax = parseAxisMax(templateOptionValue('YMax', activeTemplate?.yMax || 8), 8);
+            const values = splitTemplateValues(content);
+            values.forEach((value, index) => {
+                host.appendChild(makeTemplateControlRow(`BAND ${String(index + 1).padStart(2, '0')}`, value, 0, yMax, 1, next => {
+                    values[index] = next;
+                    updateTemplateRawData([values.join(' ')]);
+                    renderTemplateValueControls();
+                }));
+            });
+        }
+
+        function renderHeatmapControls(host, content) {
+            const rows = normalizeTemplateLines(content).map(line => line.trim().split(/\s+/).map(value => Math.max(1, Math.min(4, Number.parseInt(value, 10) || 1))));
+            rows.forEach((rowValues, rowIndex) => {
+                rowValues.forEach((value, colIndex) => {
+                    host.appendChild(makeTemplateControlRow(`R${rowIndex + 1} C${colIndex + 1}`, value, 1, 4, 1, next => {
+                        rows[rowIndex][colIndex] = next;
+                        updateTemplateRawData(rows.map(row => row.join(' ')));
+                        renderTemplateValueControls();
+                    }));
+                });
+            });
+        }
+
+        function renderTemplateValueControls() {
+            const host = byId('templateValueControls');
+            const bodyInput = byId('templateEditContent');
+            if (!host || !bodyInput || !activeTemplate) return;
+            host.textContent = '';
+            const supported = ['chart', 'bar-plot', 'spectrum', 'meter', 'heatmap'].includes(activeTemplate.type);
+            host.classList.toggle('hidden', !supported);
+            if (!supported) return;
+
+            const title = document.createElement('div');
+            title.className = 'template-title';
+            title.textContent = 'Value Controls';
+            host.appendChild(title);
+
+            if (activeTemplate.type === 'chart' || activeTemplate.type === 'meter') renderChartControls(host, bodyInput.value);
+            else if (activeTemplate.type === 'bar-plot') renderBarPlotControls(host, bodyInput.value);
+            else if (activeTemplate.type === 'spectrum') renderSpectrumControls(host, bodyInput.value);
+            else if (activeTemplate.type === 'heatmap') renderHeatmapControls(host, bodyInput.value);
+        }
+
+        function templateOptionValue(key, fallback = '') {
+            const input = byId(`templateEdit${key}`);
+            return input ? input.value : fallback;
+        }
+
+        function buildVerticalBarPlotTemplate(title, content, options = {}) {
+            const yMax = parseAxisMax(options.yMax, 8);
+            const rowsIn = normalizeTemplateLines(content)
+                .map((line, index) => {
+                    const parts = line.includes('|') ? line.split('|') : [String(index + 1).padStart(2, '0'), line];
+                    return {
+                        label: String(parts[0] || index + 1).trim().slice(0, 4),
+                        value: Math.max(0, Math.min(yMax, Number.parseFloat(parts[1]) || 0))
+                    };
+                });
+            const rows = [String(title || options.yLabel || 'BAR CHART').toUpperCase()];
+            for (let level = yMax; level >= 1; level--) {
+                rows.push(`${String(level).padStart(2, '0')} │ ${rowsIn.map(row => row.value >= level ? '█' : ' ').join('   ')}`);
+            }
+            rows.push(`   └${'─'.repeat(Math.max(10, rowsIn.length * 4))}`);
+            rows.push(`    ${rowsIn.map(row => padVisible(row.label, 2)).join('  ')}`);
+            if (options.xLabel) rows.push(`X: ${options.xLabel}`);
+            if (options.yLabel) rows.push(`Y: ${options.yLabel}`);
+            return rows.join('\n');
+        }
+
+        function buildSpectrumTemplate(title, content, options = {}) {
+            const yMax = parseAxisMax(options.yMax, 8);
+            const values = splitTemplateValues(content).map(value => Math.max(0, Math.min(yMax, value)));
+            const blocks = '▁▂▃▄▅▆▇█';
+            const signal = values.map(value => blocks[Math.max(0, Math.min(7, Math.round((value / yMax) * 7)))]).join('');
+            return [
+                String(title || 'SIGNAL SPECTRUM').toUpperCase(),
+                `${padVisible(options.yLabel || 'LEVEL', 10)} ${signal}`,
+                `${padVisible(options.xLabel || 'FREQ', 10)} ${'─'.repeat(Math.max(8, values.length))}`,
+                `${padVisible('PEAK', 10)} ${Math.max(0, ...values).toFixed(1)} / ${yMax}`
+            ].join('\n');
+        }
+
+        function buildMeterTemplate(title, content) {
+            const rows = normalizeTemplateLines(content).map(line => {
+                const [label = 'VALUE', rawValue = '0', state = ''] = line.split('|');
+                const value = Math.max(0, Math.min(100, Number.parseFloat(rawValue) || 0));
+                const filled = Math.round(value / 10);
+                return `${padVisible(label.toUpperCase(), 16)} [${'█'.repeat(filled)}${'░'.repeat(10 - filled)}] ${String(Math.round(value)).padStart(3, ' ')}% ${state.trim().toUpperCase()}`;
+            });
+            return buildBoxTemplate({ type: 'frame' }, title || 'LIVE TELEMETRY', rows.join('\n'));
+        }
+
+        function buildHeatmapTemplate(title, content, options = {}) {
+            const density = ['░░', '▒▒', '▓▓', '██'];
+            const rows = normalizeTemplateLines(content).map((line, index) => {
+                const yLabels = String(options.yLabel || '').split(/\s+/).filter(Boolean);
+                const label = (yLabels[index] || String.fromCharCode(65 + index)).padEnd(2, ' ');
+                const cells = line.trim().split(/\s+/).map(raw => {
+                    const value = Math.max(1, Math.min(4, Math.round(Number.parseFloat(raw) || 1)));
+                    return density[value - 1];
+                });
+                return `${label} ${cells.join(' ')}`;
+            });
+            const header = options.xLabel ? `   ${options.xLabel}` : '';
+            return buildBoxTemplate({ type: 'frame' }, title || 'HEATMAP', [header, ...rows].filter(Boolean).join('\n'));
+        }
+
+        function buildNetworkTemplate(title, content) {
+            const rows = normalizeTemplateLines(content).map(line => {
+                const nodes = line.split(/\s*>\s*/).map(node => node.trim()).filter(Boolean);
+                return nodes.map(node => `[${node}]`).join('──');
+            });
+            return buildBoxTemplate({ type: 'frame' }, title || 'NETWORK TOPOLOGY', rows.join('\n'));
+        }
+
+        function buildTemplateOutput(template, title, content) {
+            if (template.type === 'frame' || template.type === 'box') return buildBoxTemplate(template, title, content);
+            if (template.type === 'chart') return buildChartTemplate(title, content);
+            if (template.type === 'plot') return buildPlotTemplate(title, content);
+            if (template.type === 'bar-plot') {
+                return buildVerticalBarPlotTemplate(title, content, {
+                    xLabel: templateOptionValue('XLabel', template.xLabel || ''),
+                    yLabel: templateOptionValue('YLabel', template.yLabel || ''),
+                    yMax: templateOptionValue('YMax', template.yMax || 8)
+                });
+            }
+            if (template.type === 'spectrum') {
+                return buildSpectrumTemplate(title, content, {
+                    xLabel: templateOptionValue('XLabel', template.xLabel || ''),
+                    yLabel: templateOptionValue('YLabel', template.yLabel || ''),
+                    yMax: templateOptionValue('YMax', template.yMax || 8)
+                });
+            }
+            if (template.type === 'meter') return buildMeterTemplate(title, content);
+            if (template.type === 'heatmap') {
+                return buildHeatmapTemplate(title, content, {
+                    xLabel: templateOptionValue('XLabel', template.xLabel || ''),
+                    yLabel: templateOptionValue('YLabel', template.yLabel || '')
+                });
+            }
+            if (template.type === 'network') return buildNetworkTemplate(title, content);
+            return content;
+        }
+
+        function insertTemplateOutput(text, label) {
+            if (!currentEntry()) {
+                setStatus('Create or select an entry before inserting a template.', 'warn');
+                return;
+            }
+            insertTextAtCursor(els.entryBody, text);
+            syncEntryFromForm();
+            renderPreview();
+            setStatus(`Inserted template: ${label}`);
+            closeTemplatePopup();
+        }
+
+        function insertMessageTemplate(template) {
+            insertTemplateOutput(template.text || '', template.label);
+        }
+
+        function openTemplatePopup() {
+            const overlay = els.templatePopupOverlay;
+            if (!overlay) return;
+            overlay.classList.remove('hidden');
+            overlay.setAttribute('aria-hidden', 'false');
+            showTemplatePalette();
+            const firstButton = overlay.querySelector('.template-btn');
+            if (firstButton) firstButton.focus();
+        }
+
+        function closeTemplatePopup() {
+            const overlay = els.templatePopupOverlay;
+            if (!overlay || overlay.classList.contains('hidden')) return;
+            overlay.classList.add('hidden');
+            overlay.setAttribute('aria-hidden', 'true');
+            activeTemplate = null;
+            const trigger = byId('openTemplatePopupBtn');
+            if (trigger) trigger.focus();
+        }
+
+        function showTemplatePalette() {
+            activeTemplate = null;
+            const palette = byId('templatePalette');
+            const editor = byId('templateEditor');
+            const title = byId('templatePopupTitle');
+            const hint = byId('templatePopupHint');
+            if (palette) palette.classList.remove('hidden');
+            if (editor) {
+                editor.classList.add('hidden');
+                editor.textContent = '';
+            }
+            if (title) title.textContent = 'Message Content Templates';
+            if (hint) hint.textContent = 'Choose a template, edit its content, then insert it into the Body text.';
+        }
+
+        function updateTemplateEditorPreview() {
+            if (!activeTemplate) return;
+            const titleInput = byId('templateEditTitle');
+            const bodyInput = byId('templateEditContent');
+            const preview = byId('templateEditPreview');
+            if (!bodyInput || !preview) return;
+            preview.textContent = buildTemplateOutput(activeTemplate, titleInput?.value || '', bodyInput.value || '');
+        }
+
+        function handleTemplateRawDataInput() {
+            updateTemplateEditorPreview();
+            renderTemplateValueControls();
+        }
+
+        function openTemplateEditor(template) {
+            activeTemplate = template;
+            const palette = byId('templatePalette');
+            const editor = byId('templateEditor');
+            const title = byId('templatePopupTitle');
+            const hint = byId('templatePopupHint');
+            if (!editor) return;
+
+            if (palette) palette.classList.add('hidden');
+            if (editor) editor.classList.remove('hidden');
+            if (title) title.textContent = `Template Editor // ${template.label}`;
+            if (hint) hint.textContent = 'Edit the source text below. Frames, boxes, and charts rebuild automatically to fit the content.';
+
+            const editableTypes = new Set(['frame', 'box', 'chart', 'plot', 'bar-plot', 'spectrum', 'meter', 'heatmap', 'network']);
+            const editable = editableTypes.has(template.type);
+            editor.textContent = '';
+
+            if (!editable) {
+                insertMessageTemplate(template);
+                return;
+            }
+
+            const titleLabel = document.createElement('label');
+            titleLabel.textContent = ['chart', 'plot', 'bar-plot', 'spectrum', 'meter', 'heatmap', 'network'].includes(template.type) ? 'Graph title' : 'Frame title';
+            const titleInput = document.createElement('input');
+            titleInput.id = 'templateEditTitle';
+            titleInput.type = 'text';
+            titleInput.value = template.title || template.label || '';
+            titleLabel.appendChild(titleInput);
+
+            const optionFields = document.createElement('div');
+            optionFields.className = 'field-grid';
+            const addOption = (id, labelText, value) => {
+                const label = document.createElement('label');
+                label.textContent = labelText;
+                const input = document.createElement('input');
+                input.id = `templateEdit${id}`;
+                input.type = id === 'YMax' ? 'number' : 'text';
+                input.value = value || '';
+                input.addEventListener('input', () => {
+                    updateTemplateEditorPreview();
+                    renderTemplateValueControls();
+                });
+                label.appendChild(input);
+                optionFields.appendChild(label);
+            };
+            if (['bar-plot', 'spectrum', 'heatmap'].includes(template.type)) {
+                addOption('XLabel', 'X axis / column labels', template.xLabel || '');
+                addOption('YLabel', 'Y axis / row labels', template.yLabel || '');
+            }
+            if (['bar-plot', 'spectrum'].includes(template.type)) {
+                addOption('YMax', 'Y axis max', template.yMax || 8);
+            }
+
+            const bodyLabel = document.createElement('label');
+            const bodyHelp = {
+                chart: 'Rows, one per line: LABEL|PERCENT',
+                plot: 'Values, one number per line from 0 to 8',
+                'bar-plot': 'Bars, one per line: X_LABEL|VALUE',
+                spectrum: 'Signal values separated by spaces, commas, or lines',
+                meter: 'Meters, one per line: LABEL|PERCENT|STATUS',
+                heatmap: 'Matrix rows. Use numbers 1-4 separated by spaces',
+                network: 'Routes, one per line. Use NODE>NODE>NODE'
+            };
+            bodyLabel.textContent = bodyHelp[template.type] || 'Frame content, one line per row';
+            const bodyInput = document.createElement('textarea');
+            bodyInput.id = 'templateEditContent';
+            bodyInput.value = template.content || template.text || '';
+            bodyLabel.appendChild(bodyInput);
+
+            const valueControls = document.createElement('div');
+            valueControls.id = 'templateValueControls';
+            valueControls.className = 'template-value-controls hidden';
+
+            const previewLabel = document.createElement('div');
+            previewLabel.className = 'template-title';
+            previewLabel.textContent = 'Preview';
+            const preview = document.createElement('pre');
+            preview.id = 'templateEditPreview';
+            preview.className = 'template-preview';
+
+            const actions = document.createElement('div');
+            actions.className = 'template-editor-actions';
+            const insert = document.createElement('button');
+            insert.type = 'button';
+            insert.textContent = '[ INSERT TEMPLATE ]';
+            insert.addEventListener('click', () => {
+                insertTemplateOutput(buildTemplateOutput(activeTemplate, titleInput.value, bodyInput.value), activeTemplate.label);
+            });
+            const back = document.createElement('button');
+            back.type = 'button';
+            back.textContent = '[ BACK ]';
+            back.addEventListener('click', showTemplatePalette);
+            actions.append(insert, back);
+
+            titleInput.addEventListener('input', updateTemplateEditorPreview);
+            bodyInput.addEventListener('input', handleTemplateRawDataInput);
+            editor.append(titleLabel);
+            if (optionFields.childNodes.length) editor.appendChild(optionFields);
+            editor.append(bodyLabel, valueControls, previewLabel, preview, actions);
+            updateTemplateEditorPreview();
+            renderTemplateValueControls();
+            bodyInput.focus();
+        }
+
+        function renderTemplatePalette() {
+            const host = byId('templatePalette');
+            if (!host) return;
+            host.textContent = '';
+            MESSAGE_TEMPLATES.forEach(group => {
+                const groupEl = document.createElement('section');
+                groupEl.className = 'template-group';
+
+                const title = document.createElement('div');
+                title.className = 'template-title';
+                title.textContent = group.category;
+
+                const buttons = document.createElement('div');
+                buttons.className = 'template-buttons';
+                group.items.forEach(template => {
+                    const button = document.createElement('button');
+                    button.className = 'template-btn';
+                    button.type = 'button';
+                    button.textContent = template.label;
+                    button.addEventListener('click', () => openTemplateEditor(template));
+                    buttons.appendChild(button);
+                });
+
+                groupEl.append(title, buttons);
+                host.appendChild(groupEl);
+            });
+        }
+
+        // Active schema-based template builder. These functions supersede the older ad-hoc popup helpers above.
+        let telemetryTemplateState = null;
+        let telemetryTemplateTimer = null;
+        const templateReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+
+        function stopTemplatePreviewTimer() {
+            if (telemetryTemplateTimer) {
+                clearInterval(telemetryTemplateTimer);
+                telemetryTemplateTimer = null;
+            }
+        }
+
+        function cloneTemplateData(data) {
+            return JSON.parse(JSON.stringify(data || {}));
+        }
+
+        function parseTemplateLines(value) {
+            return String(value || '')
+                .split(/\r?\n/)
+                .map(line => line.trim())
+                .filter(Boolean);
+        }
+
+        function parsePipeLine(line) {
+            return String(line || '').split('|').map(part => part.trim());
+        }
+
+        function parsePipeRows(value) {
+            return parseTemplateLines(value).map(parsePipeLine);
+        }
+
+        function clampNumber(value, min, max) {
+            const numeric = Number(value);
+            if (!Number.isFinite(numeric)) return min;
+            return Math.max(min, Math.min(max, numeric));
+        }
+
+        function parseNumberList(value) {
+            return String(value || '')
+                .split(/[\s,;|]+/)
+                .map(part => Number(part.trim()))
+                .filter(Number.isFinite);
+        }
+
+        function rotateArray(values, frame) {
+            if (!values.length) return values;
+            const offset = frame % values.length;
+            return values.slice(offset).concat(values.slice(0, offset));
+        }
+
+        function blockBar(value, width = 10, style = 'solid') {
+            const safeValue = clampNumber(value, 0, 100);
+            const filled = Math.round((safeValue / 100) * width);
+            const full = style === 'led' ? '▰' : '█';
+            const empty = style === 'led' ? '▱' : '░';
+            return full.repeat(filled) + empty.repeat(Math.max(0, width - filled));
+        }
+
+        function densityGlyph(value, max = 4) {
+            const glyphs = [' ', '░', '▒', '▓', '█'];
+            const index = Math.round(clampNumber(value, 0, max) / max * (glyphs.length - 1));
+            return glyphs[index];
+        }
+
+        function sparkline(values, yMax = 8, frame = 0) {
+            const glyphs = ['▁', '▂', '▃', '▄', '▅', '▆', '▇', '█'];
+            return rotateArray(values, frame).map(value => {
+                const index = Math.round(clampNumber(value, 0, yMax) / yMax * (glyphs.length - 1));
+                return glyphs[index];
+            }).join('');
+        }
+
+        function buildAsciiBox(title, lines) {
+            const safeLines = Array.isArray(lines) ? lines : parseTemplateLines(lines);
+            const safeTitle = String(title || 'ARES TELEMETRY').trim();
+            const width = Math.max(
+                32,
+                visibleLength(safeTitle) + 4,
+                ...safeLines.map(line => visibleLength(line) + 2)
+            );
+            const topFill = Math.max(0, width - visibleLength(safeTitle) - 3);
+            const top = `╔═ ${safeTitle} ${'═'.repeat(topFill)}╗`;
+            const body = safeLines.map(line => `║ ${padVisible(line, width - 2)} ║`);
+            const bottom = `╚${'═'.repeat(width)}╝`;
+            return [top, ...body, bottom].join('\n');
+        }
+
+        function renderPercentRows(data, frame, options = {}) {
+            return parsePipeRows(data.rows).map((row, index) => {
+                const [label = `ROW-${index + 1}`, value = 0, status = 'OK'] = row;
+                const pulse = options.spinner ? ['◢', '◐', '◒', '◣'][(frame + index) % 4] + ' ' : '';
+                const bar = blockBar(value, options.width || 10, options.style || 'solid');
+                return `${pulse}${padVisible(label.toUpperCase(), options.labelWidth || 24)} [${bar}] ${String(value).padStart(3)}% ${status}`;
+            });
+        }
+
+        function renderMatrixRows(matrixText, frame = 0, max = 4, animate = false) {
+            const rows = parseTemplateLines(matrixText).map(row => parseNumberList(row));
+            const shifted = animate ? rotateArray(rows, frame) : rows;
+            return shifted.map(row => row.map(value => densityGlyph(value, max)).join(' '));
+        }
+
+        function renderVerticalPlot(title, values, yMax, frame = 0, mode = 'bars') {
+            const rotated = rotateArray(values, frame).slice(0, 18);
+            const rows = [];
+            for (let y = yMax; y >= 1; y -= 1) {
+                const cells = rotated.map((value, index) => {
+                    if (mode === 'line') {
+                        if (Math.round(value) === y) {
+                            const next = rotated[index + 1] ?? value;
+                            if (next > value) return '╱';
+                            if (next < value) return '╲';
+                            return '─';
+                        }
+                        return ' ';
+                    }
+                    if (mode === 'step') return value >= y ? (rotated[index - 1] !== value ? '╭' : '─') : ' ';
+                    return value >= y ? '█' : ' ';
+                }).join('  ');
+                rows.push(`${String(y).padStart(2, '0')} │ ${cells}`);
+            }
+            rows.push(`   └${'─'.repeat(Math.max(18, rotated.length * 3))}`);
+            rows.push(`    ${rotated.map((_, index) => String(index + 1).padStart(2, '0')).join(' ')}`);
+            return buildAsciiBox(title, rows);
+        }
+
+        function ecgTrace(frame, width = 34) {
+            const pattern = '____/\\_/\\______________/\\_/\\________';
+            const repeated = pattern.repeat(3);
+            const offset = frame % pattern.length;
+            return repeated.slice(offset, offset + width);
+        }
+
+        function waveformTrace(values, yMax, frame) {
+            const chars = ['_', '_', '╱', '─', '╲', '_'];
+            return rotateArray(values, frame).map(value => chars[Math.round(clampNumber(value, 0, yMax) / yMax * (chars.length - 1))]).join('');
+        }
+
+        const TEMPLATE_GENERATORS = {
+            'event-log': (data, frame) => {
+                const rows = rotateArray(parsePipeRows(data.rows), frame).slice(0, 5).map(row => {
+                    const [time = '--:--:--', tag = 'SYS', stateText = 'OK', message = 'No event'] = row;
+                    return `${time}  [${tag}] ${padVisible(message, 34)} [${stateText}]`;
+                });
+                return buildAsciiBox(data.title, rows);
+            },
+            'alarm-summary': data => buildAsciiBox(data.title, parsePipeRows(data.rows).map(row => {
+                const [id = 'A-000', severity = 'INFO', message = 'Alarm', action = 'MONITOR'] = row;
+                return `${padVisible(id, 7)} ${padVisible(severity, 6)} ${padVisible(message, 30)} ${action}`;
+            })),
+            'active-processes': (data, frame) => buildAsciiBox(data.title, renderPercentRows(data, frame, { spinner: true, labelWidth: 30 })),
+            'trace-log': (data, frame) => buildAsciiBox(data.title, rotateArray(parsePipeRows(data.rows), frame).slice(0, 5).map(row => row.join('  ::  '))),
+            'audit-log': data => buildAsciiBox(data.title, parsePipeRows(data.rows).map(row => row.join('  |  '))),
+            'progress-bars': (data, frame) => buildAsciiBox(data.title, renderPercentRows(data, frame, { spinner: true, labelWidth: 28 })),
+            'segmented-led-bars': (data, frame) => buildAsciiBox(data.title, renderPercentRows(data, frame, { style: 'led', labelWidth: 22 })),
+            'bullet-chart': data => buildAsciiBox(data.title, parsePipeRows(data.rows).map(row => {
+                const [label = 'VALUE', value = 0, target = 70] = row;
+                const width = 18;
+                const marker = Math.round(clampNumber(target, 0, 100) / 100 * width);
+                const filled = Math.round(clampNumber(value, 0, 100) / 100 * width);
+                const cells = Array.from({ length: width }, (_, index) => {
+                    if (index === marker) return '│';
+                    return index < filled ? '█' : '░';
+                }).join('');
+                return `${padVisible(label, 18)} [${cells}] ${String(value).padStart(3)} / TGT ${target}`;
+            })),
+            'numeric-readouts': data => buildAsciiBox(data.title, parsePipeRows(data.rows).map(row => {
+                const [label = 'VALUE', value = '0', unit = '', stateText = 'OK'] = row;
+                return `${padVisible(label, 24)} ${String(value).padStart(8)} ${padVisible(unit, 6)} ${stateText}`;
+            })),
+            'signal-quality': (data, frame) => buildAsciiBox(data.title, renderPercentRows(data, frame, { style: 'led', labelWidth: 18 })),
+            'packet-loss': (data, frame) => buildAsciiBox(data.title, parsePipeRows(data.rows).map((row, index) => {
+                const [label = 'LOSS', value = 0, stateText = 'OK'] = row;
+                const pulses = '·:+*#';
+                const rail = Array.from({ length: 16 }, (_, railIndex) => (railIndex + frame + index) % 7 === 0 ? pulses[(railIndex + frame) % pulses.length] : '·').join('');
+                return `${padVisible(label, 18)} ${rail} ${String(value).padStart(3)}% ${stateText}`;
+            })),
+            'system-status': data => buildAsciiBox(data.title, parsePipeRows(data.rows).map(row => {
+                const [label = 'SYSTEM', value = 0, stateText = 'OK'] = row;
+                return `${padVisible(label, 20)} ${padVisible(stateText, 9)} [${blockBar(value, 10)}]`;
+            })),
+            'sparkline': (data, frame) => buildAsciiBox(data.title, [`SIGNAL  ${sparkline(parseNumberList(data.values), Number(data.yMax) || 8, frame)}`]),
+            'strip-chart': (data, frame) => buildAsciiBox(data.title, [
+                `FRAME ${String((frame % 99) + 1).padStart(2, '0')}  SIGNAL ${sparkline(parseNumberList(data.values), Number(data.yMax) || 8, frame)}`,
+                `LATEST ${String(rotateArray(parseNumberList(data.values), frame).at(-1) || 0).padStart(2, '0')} / RANGE 0-${data.yMax || 8}`
+            ]),
+            'stacked-strip-chart': (data, frame) => buildAsciiBox(data.title, parsePipeRows(data.rows).map(row => {
+                const [label = 'TRACE', values = '1 2 3'] = row;
+                return `${padVisible(label, 8)} ${sparkline(parseNumberList(values), Number(data.yMax) || 8, frame)}`;
+            })),
+            'line-chart': (data, frame) => renderVerticalPlot(data.title, parseNumberList(data.values), Number(data.yMax) || 8, frame, 'line'),
+            'step-chart': (data, frame) => renderVerticalPlot(data.title, parseNumberList(data.values), Number(data.yMax) || 8, frame, 'step'),
+            'pulse-chart': (data, frame) => buildAsciiBox(data.title, [`PULSE ${ecgTrace(frame, 38)}`, `RATE  ${sparkline(parseNumberList(data.values), Number(data.yMax) || 8, frame)}`]),
+            'oscilloscope': (data, frame) => buildAsciiBox(data.title, parsePipeRows(data.rows).map(row => {
+                const [label = 'CH', values = '1 2 3'] = row;
+                return `${padVisible(label, 6)} ${sparkline(parseNumberList(values), Number(data.yMax) || 8, frame)}  ${waveformTrace(parseNumberList(values), Number(data.yMax) || 8, frame)}`;
+            })),
+            'ecg-trace': (data, frame) => buildAsciiBox(data.title, parsePipeRows(data.rows).map((row, index) => {
+                const [unit = `UNIT-${index + 1}`, value = '90', stateText = 'OK'] = row;
+                return `${padVisible(unit, 12)} ${ecgTrace(frame + index * 5, 34)} ${String(value).padStart(4)} ${stateText}`;
+            })),
+            'seismograph': (data, frame) => buildAsciiBox(data.title, [`TREMOR ${waveformTrace(parseNumberList(data.values), Number(data.yMax) || 8, frame)}`, `RMS ${String((2 + (frame % 9) / 10).toFixed(2)).padStart(5)}   STATUS ELEVATED`]),
+            'waveform': (data, frame) => buildAsciiBox(data.title, [`WAVE ${waveformTrace(parseNumberList(data.values), Number(data.yMax) || 8, frame)}`, `AMP  ${sparkline(parseNumberList(data.values), Number(data.yMax) || 8, frame)}`]),
+            'a-scope-radar': (data, frame) => renderVerticalPlot(data.title, parseNumberList(data.values), Number(data.yMax) || 8, frame, 'bars'),
+            'waterfall': (data, frame) => buildAsciiBox(data.title, renderMatrixRows(data.matrix, frame, 4, true)),
+            'spectrogram-matrix': (data, frame) => buildAsciiBox(data.title, [
+                'FREQ  10 100 1k 10k',
+                ...renderMatrixRows(data.matrix, frame, 4, true),
+                'REF LEVEL -20dB // PEAK HOLD ON'
+            ]),
+            'heatmap-matrix': data => buildAsciiBox(data.title, renderMatrixRows(data.matrix, 0, 4, false)),
+            'health-matrix': data => buildAsciiBox(data.title, parsePipeRows(data.rows).map(row => `${padVisible(row[0] || 'SYS', 10)} ${row.slice(1).map(stateText => padVisible(stateText, 8)).join(' ')}`)),
+            'raster-event-plot': (data, frame) => buildAsciiBox(data.title, renderMatrixRows(data.matrix, frame, 1, true).map(row => row.replace(/░/g, '·').replace(/█/g, '│'))),
+            'contour-map': (data, frame) => {
+                const glyphs = [' ', '·', '╱', '╳', '▓', '█'];
+                const rows = parseTemplateLines(data.matrix).map(row => parseNumberList(row));
+                return buildAsciiBox(data.title, rotateArray(rows, frame).map(row => row.map(value => glyphs[Math.round(clampNumber(value, 0, 5))]).join(' ')));
+            },
+            'facility-grid': data => buildAsciiBox(data.title, parsePipeRows(data.rows).map(row => {
+                const cells = [];
+                for (let index = 0; index < row.length; index += 2) cells.push(`[${row[index] || '--'}] ${padVisible(row[index + 1] || 'UNKNOWN', 8)}`);
+                return cells.join(' ');
+            })),
+            'network-topology': (data, frame) => buildAsciiBox(data.title, parseTemplateLines(data.rows).map((route, index) => {
+                const packet = (frame + index) % 3 === 0 ? '◆' : '─';
+                return route.split('>').map(node => `[${node.trim()}]`).join(`${packet}${packet}`);
+            })),
+            'process-flow': data => buildAsciiBox(data.title, parsePipeRows(data.rows).map(row => `${padVisible(row[0], 14)} ─▶ ${padVisible(row[1], 14)} ${padVisible(row[2], 10)} ${row[3] || ''}`)),
+            'route-map': data => buildAsciiBox(data.title, parsePipeRows(data.rows).map((row, index) => {
+                const [site = `SITE-${index + 1}`, range = '--', stateText = 'UNKNOWN'] = row;
+                return `${String(index + 1).padStart(2, '0')} ── ${padVisible(site, 24)} ${padVisible(range, 8)} ${stateText}`;
+            })),
+            'radar-ppi-static': (data, frame) => buildAsciiBox(data.title, [
+                '        000',
+                '    .-----------.',
+                `270 | ${['/', '-', '\\', '|'][frame % 4]}   +   ${['\\', '|', '/', '-'][frame % 4]} | 090`,
+                '    `-----------´',
+                '        180',
+                ...parsePipeRows(data.rows).map(row => `${row[0] || '--'} ${row[1] || '○'} RANGE ${row[2] || '--'} BRG ${row[3] || '---'}`)
+            ]),
+            'compass-bearing': (data, frame) => {
+                const heading = clampNumber(data.heading, 0, 359);
+                const arrows = ['↑', '↗', '→', '↘', '↓', '↙', '←', '↖'];
+                const arrow = arrows[Math.round(heading / 45) % arrows.length];
+                return buildAsciiBox(data.title, ['       N', `   W --${arrow}-- E`, '       S', `BEARING ${String(Math.round(heading)).padStart(3, '0')}° // ${data.label || 'TARGET'}`, `PHASE ${['◢', '◐', '◒', '◣'][frame % 4]}`]);
+            },
+            'hex-dump': data => {
+                const bytes = Array.from(String(data.text || ''), char => char.charCodeAt(0));
+                const lines = [];
+                for (let index = 0; index < bytes.length; index += 8) {
+                    const chunk = bytes.slice(index, index + 8);
+                    const hex = chunk.map(byte => byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+                    const ascii = chunk.map(byte => byte >= 32 && byte <= 126 ? String.fromCharCode(byte) : '.').join('');
+                    lines.push(`${index.toString(16).toUpperCase().padStart(4, '0')}  ${padVisible(hex, 24)}  ${ascii}`);
+                }
+                return buildAsciiBox(data.title, lines);
+            },
+            'memory-map': data => buildAsciiBox(data.title, parsePipeRows(data.rows).map(row => `${padVisible(row[0], 8)} ${padVisible(row[1], 18)} ${row[2] || ''}`)),
+            'register-display': (data, frame) => buildAsciiBox(data.title, parsePipeRows(data.rows).map((row, index) => {
+                const [name = 'REG', value = '0x0000'] = row;
+                const suffix = index === frame % Math.max(1, parsePipeRows(data.rows).length) ? ' ◄' : '';
+                return `${padVisible(name, 8)} ${value}${suffix}`;
+            }))
+        };
+
+        function buildTemplateOutput(template, data = {}, frame = 0) {
+            const generator = TEMPLATE_GENERATORS[template.generator];
+            if (!generator) return buildAsciiBox(template.title || template.label, ['Template generator unavailable.']);
+            return generator(data, frame);
+        }
+
+        function updateTemplateFieldInput(key) {
+            const input = byId(`templateField-${key}`);
+            if (!input || !telemetryTemplateState) return;
+            input.value = telemetryTemplateState.data[key] ?? '';
+        }
+
+        function makeTemplateSlider(labelText, value, min, max, onChange) {
+            const row = document.createElement('div');
+            row.className = 'template-control-row';
+            const label = document.createElement('div');
+            label.className = 'template-control-label';
+            label.textContent = labelText;
+            const range = document.createElement('input');
+            range.type = 'range';
+            range.min = min;
+            range.max = max;
+            range.value = value;
+            const number = document.createElement('input');
+            number.type = 'number';
+            number.min = min;
+            number.max = max;
+            number.value = value;
+            const sync = nextValue => {
+                const safeValue = clampNumber(nextValue, Number(min), Number(max));
+                range.value = safeValue;
+                number.value = safeValue;
+                onChange(safeValue);
+                updateTemplateEditorPreview();
+            };
+            range.addEventListener('input', () => sync(range.value));
+            number.addEventListener('input', () => sync(number.value));
+            row.append(label, range, number);
+            return row;
+        }
+
+        function renderSchemaValueControls() {
+            const host = byId('templateValueControls');
+            if (!host || !telemetryTemplateState) return;
+            const { template, data } = telemetryTemplateState;
+            host.textContent = '';
+            host.classList.add('hidden');
+            const control = template.control;
+            if (!control || control === 'none') return;
+
+            const title = document.createElement('div');
+            title.className = 'template-fieldset-title';
+            title.textContent = 'Quick value controls';
+            host.appendChild(title);
+
+            if (control === 'rows-percent' || control === 'rows-percent-target') {
+                const rows = parsePipeRows(data.rows);
+                rows.forEach((row, index) => {
+                    host.appendChild(makeTemplateSlider(row[0] || `ROW ${index + 1}`, Number(row[1]) || 0, 0, 100, nextValue => {
+                        row[1] = String(nextValue);
+                        data.rows = rows.map(parts => parts.join('|')).join('\n');
+                        updateTemplateFieldInput('rows');
+                    }));
+                });
+            }
+
+            if (control === 'series') {
+                const values = parseNumberList(data.values);
+                const yMax = Number(data.yMax) || 8;
+                values.forEach((value, index) => {
+                    host.appendChild(makeTemplateSlider(`SAMPLE ${index + 1}`, value, 0, yMax, nextValue => {
+                        values[index] = nextValue;
+                        data.values = values.join(' ');
+                        updateTemplateFieldInput('values');
+                    }));
+                });
+            }
+
+            if (control === 'series-rows') {
+                const rows = parsePipeRows(data.rows);
+                const yMax = Number(data.yMax) || 8;
+                rows.forEach((row, rowIndex) => {
+                    const values = parseNumberList(row[1]);
+                    values.forEach((value, valueIndex) => {
+                        host.appendChild(makeTemplateSlider(`${row[0] || `TRACE ${rowIndex + 1}`} ${valueIndex + 1}`, value, 0, yMax, nextValue => {
+                            values[valueIndex] = nextValue;
+                            row[1] = values.join(' ');
+                            data.rows = rows.map(parts => parts.join('|')).join('\n');
+                            updateTemplateFieldInput('rows');
+                        }));
+                    });
+                });
+            }
+
+            if (control === 'matrix') {
+                const rows = parseTemplateLines(data.matrix).map(row => parseNumberList(row));
+                rows.forEach((row, rowIndex) => {
+                    row.forEach((value, cellIndex) => {
+                        host.appendChild(makeTemplateSlider(`R${rowIndex + 1} C${cellIndex + 1}`, value, 0, 5, nextValue => {
+                            rows[rowIndex][cellIndex] = nextValue;
+                            data.matrix = rows.map(parts => parts.join(' ')).join('\n');
+                            updateTemplateFieldInput('matrix');
+                        }));
+                    });
+                });
+            }
+
+            if (host.childNodes.length > 1) host.classList.remove('hidden');
+        }
+
+        function createTemplateFieldControl(field) {
+            const label = document.createElement('label');
+            label.textContent = field.label;
+            const value = telemetryTemplateState.data[field.id] ?? '';
+
+            if (field.type === 'textarea') {
+                const input = document.createElement('textarea');
+                input.id = `templateField-${field.id}`;
+                input.value = value;
+                input.addEventListener('input', () => {
+                    telemetryTemplateState.data[field.id] = input.value;
+                    renderSchemaValueControls();
+                    updateTemplateEditorPreview();
+                });
+                label.appendChild(input);
+                return label;
+            }
+
+            if (field.type === 'select') {
+                const input = document.createElement('select');
+                input.id = `templateField-${field.id}`;
+                (field.options || []).forEach(option => {
+                    const item = document.createElement('option');
+                    item.value = option.value ?? option;
+                    item.textContent = option.label ?? option;
+                    input.appendChild(item);
+                });
+                input.value = value;
+                input.addEventListener('change', () => {
+                    telemetryTemplateState.data[field.id] = input.value;
+                    updateTemplateEditorPreview();
+                });
+                label.appendChild(input);
+                return label;
+            }
+
+            if (field.type === 'range') {
+                const row = document.createElement('div');
+                row.className = 'template-control-row';
+                const slider = document.createElement('input');
+                slider.id = `templateField-${field.id}`;
+                slider.type = 'range';
+                slider.min = field.min ?? 0;
+                slider.max = field.max ?? 100;
+                slider.step = field.step ?? 1;
+                slider.value = value;
+                const number = document.createElement('input');
+                number.type = 'number';
+                number.min = slider.min;
+                number.max = slider.max;
+                number.step = slider.step;
+                number.value = value;
+                const setValue = nextValue => {
+                    telemetryTemplateState.data[field.id] = String(nextValue);
+                    slider.value = nextValue;
+                    number.value = nextValue;
+                    renderSchemaValueControls();
+                    updateTemplateEditorPreview();
+                };
+                slider.addEventListener('input', () => setValue(slider.value));
+                number.addEventListener('input', () => setValue(number.value));
+                row.append(slider, number);
+                label.appendChild(row);
+                return label;
+            }
+
+            const input = document.createElement('input');
+            input.id = `templateField-${field.id}`;
+            input.type = field.type === 'number' ? 'number' : 'text';
+            input.value = value;
+            input.addEventListener('input', () => {
+                telemetryTemplateState.data[field.id] = input.value;
+                updateTemplateEditorPreview();
+            });
+            label.appendChild(input);
+            return label;
+        }
+
+        function updateTemplateEditorPreview() {
+            if (!telemetryTemplateState) return;
+            const preview = byId('templateEditPreview');
+            if (!preview) return;
+            preview.textContent = buildTemplateOutput(
+                telemetryTemplateState.template,
+                telemetryTemplateState.data,
+                telemetryTemplateState.frame
+            );
+        }
+
+        function startTemplatePreviewTimer() {
+            stopTemplatePreviewTimer();
+            if (!telemetryTemplateState?.animate || templateReducedMotion?.matches) return;
+            telemetryTemplateTimer = setInterval(() => {
+                telemetryTemplateState.frame += 1;
+                updateTemplateEditorPreview();
+            }, 120);
+        }
+
+        function insertTemplateOutput(text, label) {
+            if (!currentEntry()) {
+                setStatus('Create or select an entry before inserting a template.', 'warn');
+                return;
+            }
+            insertTextAtCursor(els.entryBody, text);
+            syncEntryFromForm();
+            renderPreview();
+            setStatus(`Inserted template: ${label}`);
+            closeTemplatePopup();
+        }
+
+        function insertMessageTemplate(template) {
+            insertTemplateOutput(buildTemplateOutput(template, cloneTemplateData(template.data), 0), template.label);
+        }
+
+        function openTemplatePopup() {
+            const overlay = els.templatePopupOverlay;
+            if (!overlay) return;
+            overlay.classList.remove('hidden');
+            overlay.setAttribute('aria-hidden', 'false');
+            showTemplatePalette();
+            const firstButton = overlay.querySelector('.template-btn');
+            if (firstButton) firstButton.focus();
+        }
+
+        function closeTemplatePopup() {
+            const overlay = els.templatePopupOverlay;
+            if (!overlay || overlay.classList.contains('hidden')) return;
+            stopTemplatePreviewTimer();
+            overlay.classList.add('hidden');
+            overlay.setAttribute('aria-hidden', 'true');
+            telemetryTemplateState = null;
+            activeTemplate = null;
+            const trigger = byId('openTemplatePopupBtn');
+            if (trigger) trigger.focus();
+        }
+
+        function showTemplatePalette() {
+            stopTemplatePreviewTimer();
+            telemetryTemplateState = null;
+            activeTemplate = null;
+            const palette = byId('templatePalette');
+            const editor = byId('templateEditor');
+            const title = byId('templatePopupTitle');
+            const hint = byId('templatePopupHint');
+            if (palette) palette.classList.remove('hidden');
+            if (editor) {
+                editor.classList.add('hidden');
+                editor.textContent = '';
+            }
+            if (title) title.textContent = 'Message Content Templates';
+            if (hint) hint.textContent = 'Choose a telemetry template, edit its values, then insert a static ASCII snapshot into the Body text.';
+        }
+
+        function openTemplateEditor(template) {
+            const palette = byId('templatePalette');
+            const editor = byId('templateEditor');
+            const title = byId('templatePopupTitle');
+            const hint = byId('templatePopupHint');
+            if (!editor) return;
+
+            stopTemplatePreviewTimer();
+            telemetryTemplateState = {
+                template,
+                data: cloneTemplateData(template.data),
+                frame: 0,
+                animate: false
+            };
+            activeTemplate = template;
+
+            if (palette) palette.classList.add('hidden');
+            editor.classList.remove('hidden');
+            editor.textContent = '';
+            if (title) title.textContent = `Template Editor // ${template.label}`;
+            if (hint) hint.textContent = 'Edit fields and sliders. Preview animation is editor-only; inserted output is plain static text.';
+
+            const fields = document.createElement('div');
+            fields.className = 'template-fieldset';
+            const fieldsTitle = document.createElement('div');
+            fieldsTitle.className = 'template-fieldset-title';
+            fieldsTitle.textContent = 'Editable template data';
+            fields.appendChild(fieldsTitle);
+            (template.fields || []).forEach(field => fields.appendChild(createTemplateFieldControl(field)));
+
+            if (template.supportsPreviewAnimation) {
+                const check = document.createElement('label');
+                check.className = 'template-check';
+                const checkbox = document.createElement('input');
+                checkbox.id = 'templateAnimatePreview';
+                checkbox.type = 'checkbox';
+                checkbox.disabled = Boolean(templateReducedMotion?.matches);
+                checkbox.addEventListener('change', () => {
+                    telemetryTemplateState.animate = checkbox.checked;
+                    startTemplatePreviewTimer();
+                });
+                check.append(checkbox, document.createTextNode(templateReducedMotion?.matches ? 'Animate Preview disabled by reduced motion' : 'Animate Preview'));
+                fields.appendChild(check);
+            }
+
+            const valueControls = document.createElement('div');
+            valueControls.id = 'templateValueControls';
+            valueControls.className = 'template-value-controls hidden';
+
+            const previewLabel = document.createElement('div');
+            previewLabel.className = 'template-title';
+            previewLabel.textContent = 'Live ASCII Preview';
+            const preview = document.createElement('pre');
+            preview.id = 'templateEditPreview';
+            preview.className = 'template-preview';
+
+            const actions = document.createElement('div');
+            actions.className = 'template-editor-actions';
+            const insert = document.createElement('button');
+            insert.type = 'button';
+            insert.textContent = '[ INSERT CURRENT FRAME ]';
+            insert.addEventListener('click', () => {
+                insertTemplateOutput(
+                    buildTemplateOutput(telemetryTemplateState.template, telemetryTemplateState.data, telemetryTemplateState.frame),
+                    telemetryTemplateState.template.label
+                );
+            });
+            const back = document.createElement('button');
+            back.type = 'button';
+            back.textContent = '[ BACK ]';
+            back.addEventListener('click', showTemplatePalette);
+            actions.append(insert, back);
+
+            editor.append(fields, valueControls, previewLabel, preview, actions);
+            renderSchemaValueControls();
+            updateTemplateEditorPreview();
+            editor.querySelector('input, textarea, select')?.focus();
+        }
+
+        function renderTemplatePalette() {
+            const host = byId('templatePalette');
+            if (!host) return;
+            host.textContent = '';
+            const groups = MESSAGE_TEMPLATES.reduce((map, template) => {
+                const group = template.group || 'Other';
+                if (!map.has(group)) map.set(group, []);
+                map.get(group).push(template);
+                return map;
+            }, new Map());
+
+            groups.forEach((templates, groupName) => {
+                const groupEl = document.createElement('section');
+                groupEl.className = 'template-group';
+
+                const title = document.createElement('div');
+                title.className = 'template-title';
+                title.textContent = groupName;
+
+                const buttons = document.createElement('div');
+                buttons.className = 'template-buttons';
+                templates.forEach(template => {
+                    const button = document.createElement('button');
+                    button.className = 'template-btn';
+                    button.type = 'button';
+                    button.textContent = template.label;
+                    button.addEventListener('click', () => openTemplateEditor(template));
+                    buttons.appendChild(button);
+                });
+
+                groupEl.append(title, buttons);
+                host.appendChild(groupEl);
+            });
+        }
+
+        function renderPreview() {
+            syncMetadataFromForm();
+            syncEntryFromForm();
+            els.preview.textContent = '';
+            const summary = document.createElement('div');
+            summary.className = 'preview-card';
+            summary.textContent = `${state.metadata.title}\nID: ${state.metadata.id}\nPassword: ${state.metadata.password}\nEntries: ${state.entries.length}`;
+            els.preview.appendChild(summary);
+
+            const entry = currentEntry();
+            if (entry) {
+                const card = document.createElement('div');
+                card.className = `preview-card ${Number(entry.clearance || 1) >= 4 || entry.category === 'CONFIDENTIAL' ? 'restricted' : ''}`.trim();
+                card.textContent = `[${entry.category}] ${entry.title}\nID: ${entry.id}\nCLEARANCE: ${entry.clearance}\nTAGS: ${entry.tags}\n${entry.body}`;
+                els.preview.appendChild(card);
+            }
+
+            const categories = {};
+            state.entries.forEach(entry => {
+                const category = entry.category || 'GENERAL';
+                categories[category] = (categories[category] || 0) + 1;
+            });
+            const categoryCard = document.createElement('div');
+            categoryCard.className = 'preview-card';
+            categoryCard.textContent = Object.entries(categories).map(([category, count]) => `${category}: ${count}`).join('\n');
+            els.preview.appendChild(categoryCard);
+        }
+
+        async function loadManifest() {
+            try {
+                const response = await fetch('databases/manifest.json', { cache: 'no-store' });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const manifest = await response.json();
+                const manifestItems = Array.isArray(manifest.databases) ? manifest.databases : [];
+                const available = await verifiedManifestDatabases(manifestItems);
+                renderSourceList(available);
+                setStatus(`Loaded databases/manifest.json. Verified ${available.length}/${manifestItems.length} package(s) in databases/.`, available.length ? 'ok' : 'warn');
+                if (available[0]) loadDatabaseFromSite(available[0]);
+            } catch (error) {
+                renderSourceList([]);
+                applyParsedDatabase(parseDatabaseMarkdown(DEFAULT_DATABASE, 'fallback'), 'database1.md');
+                setStatus('Manifest fetch failed. Loaded editor fallback; use OPEN LOCAL FILE for local editing.', 'warn');
+            }
+        }
+
+        async function manifestItemExists(item) {
+            const path = databasePathForItem(item);
+            if (!path) return false;
+            try {
+                const response = await fetch(path, { method: 'HEAD', cache: 'no-store' });
+                if (response.ok) return true;
+                if (![405, 501].includes(response.status)) return false;
+            } catch (error) {
+                return false;
+            }
+
+            try {
+                const response = await fetch(path, { cache: 'no-store' });
+                return response.ok;
+            } catch (error) {
+                return false;
+            }
+        }
+
+        async function verifiedManifestDatabases(databases = []) {
+            const safeItems = databases.filter(item => databasePathForItem(item));
+            const checks = await Promise.all(safeItems.map(async item => ({
+                item,
+                exists: await manifestItemExists(item)
+            })));
+            return checks.filter(check => check.exists).map(check => check.item);
+        }
+
+        function renderSourceList(databases) {
+            els.sourceList.textContent = '';
+            if (!databases.length) {
+                const note = document.createElement('p');
+                note.className = 'note';
+                note.textContent = 'No manifest entries loaded.';
+                els.sourceList.appendChild(note);
+                return;
+            }
+            databases.forEach(item => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'source-btn';
+                button.textContent = `${item.displayName || item.file}\n${item.description || ''}`;
+                button.addEventListener('click', () => loadDatabaseFromSite(item));
+                els.sourceList.appendChild(button);
+            });
+        }
+
+        async function loadDatabaseFromSite(item) {
+            const file = databaseFileName(item);
+            const path = databasePathForItem(item);
+            if (!path) {
+                setStatus('Manifest entry rejected. Database files must stay inside databases/.', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(path, { cache: 'no-store' });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                if (isZipPackage(file) || item.format === 'zip') {
+                    const extracted = await readZipDatabasePackage(await response.blob(), item, file);
+                    applyParsedDatabase(parseDatabaseText(extracted.content, extracted.entryName || file), extracted.source);
+                    setStatus(`Loaded ZIP package ${file} using internal transport key.`);
+                    return;
+                }
+
+                let text = await response.text();
+                if (isDatPackage(file)) text = decodeEncrypted(text);
+                applyParsedDatabase(parseDatabaseText(text, file), file);
+                setStatus(`Loaded ${file}.`);
+            } catch (error) {
+                setStatus(`Could not load ${file}. Check path casing, ZIP key, or use local file import.`, 'error');
+            }
+        }
+
+        function xorCrypt(text) {
+            let output = '';
+            for (let i = 0; i < text.length; i++) {
+                output += String.fromCharCode(text.charCodeAt(i) ^ ENCRYPTION_KEY.charCodeAt(i % ENCRYPTION_KEY.length));
+            }
+            return output;
+        }
+
+        function encodeEncrypted(text) {
+            return btoa(unescape(encodeURIComponent(xorCrypt(text))));
+        }
+
+        function decodeEncrypted(encoded) {
+            const raw = atob(String(encoded || '').trim());
+            const legacy = xorCrypt(raw);
+            try {
+                const utf8Encrypted = decodeURIComponent(escape(raw));
+                return xorCrypt(utf8Encrypted);
+            } catch (error) {
+                return legacy;
+            }
+        }
+
+        async function openLocalZipFile(file) {
+            try {
+                const extracted = await readZipDatabasePackage(file, {}, file.name);
+                applyParsedDatabase(parseDatabaseText(extracted.content, extracted.entryName || file.name), extracted.source);
+                setStatus(`Loaded local ZIP package: ${file.name}`);
+            } catch (error) {
+                setStatus('Could not open ZIP package. Check ZIP password/key or database file inside.', 'error');
+            }
+        }
+
+        function openLocalFile(file) {
+            if (isZipPackage(file.name)) {
+                openLocalZipFile(file);
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = event => {
+                try {
+                    let text = String(event.target.result || '');
+                    if (isDatPackage(file.name)) text = decodeEncrypted(text);
+                    applyParsedDatabase(parseDatabaseText(text, file.name), file.name);
+                    setStatus(`Loaded local file: ${file.name}`);
+                } catch (error) {
+                    setStatus('Could not parse database file. Check Markdown structure, ZIP key, or encrypted DAT format.', 'error');
+                }
+            };
+            reader.onerror = () => setStatus('Could not read local file.', 'error');
+            reader.readAsText(file);
+        }
+
+        function downloadBlob(filename, blob) {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(url);
+        }
+
+        function downloadFile(filename, content, type) {
+            downloadBlob(filename, new Blob([content], { type }));
+        }
+
+        function downloadMarkdown() {
+            const filename = `${state.metadata.id || 'database'}.md`;
+            downloadFile(filename, serializeDatabase(), 'text/markdown;charset=utf-8');
+            setStatus(`Downloaded ${filename}.`);
+        }
+
+        async function downloadZipPackage() {
+            try {
+                const zipLib = await loadZipLibrary();
+                const innerFilename = `${state.metadata.id || 'database'}.md`;
+                const zipFilename = `${state.metadata.id || 'database'}.zip`;
+                const writer = new zipLib.ZipWriter(new zipLib.BlobWriter('application/zip'), {
+                    useWebWorkers: false
+                });
+                await writer.add(innerFilename, new zipLib.TextReader(serializeDatabase()), {
+                    password: databaseZipPassword(),
+                    encryptionStrength: 3,
+                    useWebWorkers: false
+                });
+                const blob = await writer.close();
+                downloadBlob(zipFilename, blob);
+                setStatus(`Downloaded encrypted ZIP package ${zipFilename}. ZIP uses the internal transport key, not the terminal password.`);
+            } catch (error) {
+                setStatus('Could not create encrypted ZIP package. Check network access for zip.js.', 'error');
+            }
+        }
+
+        function downloadEncryptedDat() {
+            const filename = `${state.metadata.id || 'database'}.dat`;
+            downloadFile(filename, encodeEncrypted(serializeDatabase()), 'application/octet-stream');
+            setStatus(`Downloaded encrypted ${filename}.`);
+        }
+
+        async function saveLocalFile() {
+            if (!window.showSaveFilePicker) {
+                downloadMarkdown();
+                return;
+            }
+            try {
+                const handle = await window.showSaveFilePicker({
+                    suggestedName: `${state.metadata.id || 'database'}.md`,
+                    types: [{ description: 'Markdown database', accept: { 'text/markdown': ['.md'] } }]
+                });
+                const writable = await handle.createWritable();
+                await writable.write(serializeDatabase());
+                await writable.close();
+                setStatus('Saved local file.');
+            } catch (error) {
+                if (error.name !== 'AbortError') setStatus('Local save failed. Use DOWNLOAD MD instead.', 'error');
+            }
+        }
+
+        function bindLiveUpdates() {
+            ['metaId', 'metaTitle', 'metaDescription', 'metaPassword', 'entryId', 'entryTitle',
+                'entryCategory', 'entryClearance', 'entryTags', 'entryRelated', 'entryRedacted',
+                'entryBody'].forEach(id => {
+                els[id].addEventListener('input', () => {
+                    syncMetadataFromForm();
+                    syncEntryFromForm();
+                    renderEntryList();
+                    renderPreview();
+                });
+            });
+        }
+
+        function init() {
+            ['status', 'fileInput', 'sourceList', 'metaId', 'metaTitle', 'metaDescription', 'metaPassword',
+                'entryList', 'entryId', 'entryTitle', 'entryCategory', 'entryClearance', 'entryTags',
+                'entryRelated', 'entryRedacted', 'entryBody', 'categoryList', 'preview', 'templatePopupOverlay'].forEach(id => {
+                els[id] = byId(id);
+            });
+
+            byId('loadManifestBtn').addEventListener('click', loadManifest);
+            byId('openFileBtn').addEventListener('click', () => els.fileInput.click());
+            byId('addEntryBtn').addEventListener('click', addEntry);
+            byId('duplicateEntryBtn').addEventListener('click', duplicateEntry);
+            byId('removeEntryBtn').addEventListener('click', removeEntry);
+            byId('downloadMdBtn').addEventListener('click', downloadMarkdown);
+            byId('downloadZipBtn').addEventListener('click', downloadZipPackage);
+            byId('downloadDatBtn').addEventListener('click', downloadEncryptedDat);
+            byId('saveLocalBtn').addEventListener('click', saveLocalFile);
+            byId('openTemplatePopupBtn').addEventListener('click', openTemplatePopup);
+            byId('templatePopupCloseBtn').addEventListener('click', closeTemplatePopup);
+            els.templatePopupOverlay.addEventListener('click', event => {
+                if (event.target === els.templatePopupOverlay) closeTemplatePopup();
+            });
+            document.addEventListener('keydown', event => {
+                if (event.key === 'Escape') closeTemplatePopup();
+            });
+            els.fileInput.addEventListener('change', event => {
+                const file = event.target.files && event.target.files[0];
+                if (file) openLocalFile(file);
+                event.target.value = '';
+            });
+            if (window.showSaveFilePicker) byId('saveLocalBtn').classList.remove('hidden');
+            renderTemplatePalette();
+            bindLiveUpdates();
+            loadManifest();
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

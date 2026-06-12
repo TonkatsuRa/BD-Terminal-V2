@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" role="img" aria-labelledby="title desc">
+  <title id="title">BRE-01 placeholder floorplan</title>
+  <desc id="desc">Generated tactical SVG floorplan for BRE-01.</desc>
+  <rect width="960" height="560" fill="#050807"/>
+  <g fill="none" stroke="#00f0ff" stroke-width="4" opacity=".78">
+    <rect x="90" y="90" width="360" height="180"/>
+    <rect x="510" y="90" width="260" height="140"/>
+    <rect x="220" y="320" width="480" height="120"/>
+    <path d="M450 180H510M270 270v50M590 230v90"/>
+  </g>
+  <g stroke="#39ff14" stroke-width="2" opacity=".72">
+    <path d="M120 130H420M120 170H420M540 130H740M260 360H660"/>
+  </g>
+  <g fill="#ffb000" font-family="monospace" font-size="34" letter-spacing="4">
+    <text x="88" y="62">BRE-01 // GATE ANNEX</text>
+    <text x="120" y="152">CORE</text>
+    <text x="540" y="152">RELAY</text>
+    <text x="260" y="395">SERVICE AXIS</text>
+  </g>
+  <g fill="#ff003c">
+    <circle cx="420" cy="130" r="10"/>
+    <circle cx="590" cy="320" r="8"/>
+  </g>
+</svg>

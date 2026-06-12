@@ -1,0 +1,52 @@
+{
+  "sites": [
+    {
+      "id": "BRE-01",
+      "displayName": "BRE-01 // Acheron Gate Annex",
+      "code": "ALPHA-7742",
+      "database": "databases/sites/bre-01.md",
+      "statusProfile": "content/sites/bre-01-status.md",
+      "floorplan": "assets/sites/bre-01-floorplan.svg"
+    },
+    {
+      "id": "BRE-02",
+      "displayName": "BRE-02 // Meridian Extraction Site",
+      "code": "BRAVO-3318",
+      "database": "databases/sites/bre-02.md",
+      "statusProfile": "content/sites/bre-02-status.md",
+      "floorplan": "assets/sites/bre-02-floorplan.svg"
+    },
+    {
+      "id": "BRE-03",
+      "displayName": "BRE-03 // Khepri Observation Post",
+      "code": "CHARLIE-1206",
+      "database": "databases/sites/bre-03.md",
+      "statusProfile": "content/sites/bre-03-status.md",
+      "floorplan": "assets/sites/bre-03-floorplan.svg"
+    },
+    {
+      "id": "BRE-04",
+      "displayName": "BRE-04 // Glasshouse Containment",
+      "code": "DELTA-5891",
+      "database": "databases/sites/bre-04.md",
+      "statusProfile": "content/sites/bre-04-status.md",
+      "floorplan": "assets/sites/bre-04-floorplan.svg"
+    },
+    {
+      "id": "BRE-05",
+      "displayName": "BRE-05 // Boreline Relay Station",
+      "code": "ECHO-4429",
+      "database": "databases/sites/bre-05.md",
+      "statusProfile": "content/sites/bre-05-status.md",
+      "floorplan": "assets/sites/bre-05-floorplan.svg"
+    },
+    {
+      "id": "BRE-06",
+      "displayName": "BRE-06 // Orpheus Deep Lab",
+      "code": "FOXTROT-9904",
+      "database": "databases/sites/bre-06.md",
+      "statusProfile": "content/sites/bre-06-status.md",
+      "floorplan": "assets/sites/bre-06-floorplan.svg"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" role="img" aria-labelledby="title desc">
+  <title id="title">BRE-04 placeholder floorplan</title>
+  <desc id="desc">Generated tactical SVG floorplan for BRE-04.</desc>
+  <rect width="960" height="560" fill="#080506"/>
+  <g fill="none" stroke="#00f0ff" stroke-width="4" opacity=".78">
+    <rect x="100" y="120" width="170" height="260"/>
+    <rect x="330" y="90" width="300" height="330"/>
+    <rect x="690" y="130" width="170" height="240"/>
+    <path d="M270 250H330M630 250H690M480 90v330"/>
+  </g>
+  <g stroke="#39ff14" stroke-width="2" opacity=".72">
+    <path d="M360 140H600M360 205H600M360 270H600M360 335H600"/>
+  </g>
+  <g fill="#ffb000" font-family="monospace" font-size="34" letter-spacing="4">
+    <text x="88" y="62">BRE-04 // GLASSHOUSE</text>
+    <text x="125" y="260">INTAKE</text>
+    <text x="370" y="260">CONTAIN</text>
+    <text x="710" y="260">Q-2</text>
+  </g>
+  <g fill="#ff003c">
+    <circle cx="600" cy="205" r="10"/>
+    <circle cx="480" cy="335" r="8"/>
+  </g>
+</svg>

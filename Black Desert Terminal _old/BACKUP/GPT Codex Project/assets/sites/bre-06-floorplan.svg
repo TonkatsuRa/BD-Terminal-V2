@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" role="img" aria-labelledby="title desc">
+  <title id="title">BRE-06 placeholder floorplan</title>
+  <desc id="desc">Generated tactical SVG floorplan for BRE-06.</desc>
+  <rect width="960" height="560" fill="#060509"/>
+  <g fill="none" stroke="#00f0ff" stroke-width="4" opacity=".78">
+    <rect x="110" y="90" width="170" height="360"/>
+    <rect x="350" y="130" width="250" height="120"/>
+    <rect x="350" y="320" width="250" height="120"/>
+    <rect x="680" y="180" width="160" height="200"/>
+    <path d="M280 270H350M475 250v70M600 380H680"/>
+  </g>
+  <g stroke="#39ff14" stroke-width="2" opacity=".72">
+    <path d="M145 135H245M145 190H245M145 245H245M145 300H245M385 175H565M385 365H565"/>
+  </g>
+  <g fill="#ffb000" font-family="monospace" font-size="34" letter-spacing="4">
+    <text x="98" y="62">BRE-06 // DEEP LAB</text>
+    <text x="145" y="285">LIFT</text>
+    <text x="385" y="205">LAB</text>
+    <text x="692" y="292">ORPHEUS</text>
+  </g>
+  <g fill="#ff003c">
+    <circle cx="475" cy="320" r="10"/>
+    <circle cx="760" cy="380" r="8"/>
+  </g>
+</svg>

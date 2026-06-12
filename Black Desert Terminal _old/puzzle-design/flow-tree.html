@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BRE Network — Database Unlock Flow Tree</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.0/mermaid.min.js"></script>
+<style>
+  :root {
+    --bg: #0d1117;
+    --panel: #161b22;
+    --panel-2: #1f2630;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #58a6ff;
+    --accent-2: #d29922;
+    --green: #3fb950;
+    --red: #f85149;
+    --orange: #ff7b35;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', 'Consolas', 'Menlo', monospace;
+    font-size: 14px;
+    line-height: 1.55;
+  }
+  header {
+    padding: 28px 36px 12px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel);
+  }
+  header h1 {
+    margin: 0 0 6px;
+    font-size: 22px;
+    color: var(--accent-2);
+    letter-spacing: 0.5px;
+  }
+  header .sub {
+    color: var(--muted);
+    font-size: 13px;
+  }
+  main { padding: 24px 36px 80px; }
+  section {
+    margin-bottom: 36px;
+    padding: 20px 24px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  section h2 {
+    margin: 0 0 14px;
+    font-size: 16px;
+    color: var(--accent);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 8px;
+  }
+  section h3 {
+    margin: 18px 0 8px;
+    font-size: 14px;
+    color: var(--accent-2);
+  }
+  .mermaid {
+    background: var(--panel-2);
+    padding: 20px;
+    border-radius: 6px;
+    overflow-x: auto;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0 4px;
+    font-size: 13px;
+  }
+  th, td {
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  th {
+    color: var(--muted);
+    font-weight: normal;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+  }
+  code, .pw {
+    background: #21262d;
+    padding: 1px 6px;
+    border-radius: 3px;
+    color: var(--accent-2);
+    font-size: 12.5px;
+  }
+  .pw.given { color: var(--green); }
+  .pw.final { color: var(--red); }
+  .new-tag {
+    display: inline-block;
+    background: var(--orange);
+    color: #111;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: bold;
+    margin-left: 6px;
+    letter-spacing: 0.5px;
+  }
+  .clue {
+    color: var(--muted);
+    font-style: italic;
+  }
+  .legend {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 10px;
+    margin-top: 8px;
+  }
+  .legend div {
+    padding: 8px 10px;
+    background: var(--panel-2);
+    border-left: 3px solid var(--accent);
+    border-radius: 3px;
+    font-size: 12.5px;
+  }
+  .legend div.start { border-left-color: var(--green); }
+  .legend div.final { border-left-color: var(--red); }
+  .legend div.branch { border-left-color: var(--orange); }
+  p { margin: 6px 0 10px; }
+  ul { padding-left: 22px; }
+  li { margin: 3px 0; }
+  .note {
+    background: #1c1f26;
+    border-left: 3px solid var(--accent);
+    padding: 10px 14px;
+    margin: 12px 0;
+    font-size: 13px;
+    border-radius: 0 4px 4px 0;
+  }
+  .note.warn { border-left-color: var(--orange); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>BRE NETWORK — DATABASE UNLOCK FLOW TREE</h1>
+  <div class="sub">Puzzle progression map. Start: BRE-06 welcome screen → Final: BRE-01 Brandt log. Branching paths with mixed clue types.</div>
+</header>
+
+<main>
+
+<section>
+  <h2>// OVERVIEW</h2>
+  <p>Players begin at <strong>BRE-06</strong>. The welcome screen hands them the first password (the BRE-06 intranet). Inside that intranet, the first lore clue points at the next database. Each database either contains a <em>plain password</em>, a <em>lore-based hint</em>, or a <em>composite clue</em> requiring info from two databases.</p>
+  <p>Site progression is broadly: <strong>BRE-06 → BRE-05 → (BRE-04 + BRE-03 in parallel) → BRE-02 → BRE-01 (final)</strong>. The final database (Brandt's personal log at BRE-01) requires a synthesized password using clues from BRE-03 <em>and</em> BRE-01.</p>
+  <div class="legend">
+    <div class="start">GREEN — given to player on welcome screen</div>
+    <div>BLUE — site intranet (default per-site password)</div>
+    <div>YELLOW — internal database (puzzle-locked)</div>
+    <div class="branch">ORANGE — requires combining 2 clues</div>
+    <div class="final">RED — final climactic reveal</div>
+  </div>
+</section>
+
+<section>
+  <h2>// FLOW DIAGRAM</h2>
+  <div class="mermaid">
+flowchart TD
+  Start(["WELCOME SCREEN<br/>BRE-06 connection established<br/>Operator hint printed"])
+
+  %% BRE-06
+  Start -->|"gives password<br/>FOXTROT-9904"| B6_INT["BRE-06 Intranet<br/>FOXTROT-9904"]
+  B6_INT -->|"lore: Orpheus chamber"| B6_LAB["Research Laboratory<br/>ORPHEUS"]
+  B6_LAB -->|"lore: Pattern-AI restart<br/>then CARE-9"| B6_AI["Psychiatric AI Reports<br/>CARE-9"]
+  B6_AI -->|"plain handoff:<br/>Channel ECHO-4429"| B5_INT
+
+  %% BRE-05
+  B5_INT["BRE-05 Intranet<br/>ECHO-4429"]
+  B5_INT -->|"lore: blank-author<br/>maintenance ticket"| B5_RELAY["Outpost Relay Logs<br/>NULL-SLATE"]
+  B5_RELAY -->|"lore: Kess specimen<br/>+ C-12 watch"| B5_PERS["Personnel Registry<br/>KESS-C12"]
+  B5_PERS -->|"splits 2 hints"| B4_INT
+  B5_PERS --> B3_INT
+
+  %% BRE-04
+  B4_INT["BRE-04 Intranet<br/>DELTA-5891"]
+  B4_INT -->|"cipher: amber<br/>maintenance code"| B4_SEC["Security Incidents<br/>VALE-AMBER"]
+  B4_INT -->|"lore: badge MAL-440"| B4_LOG["Security Logbook<br/>MALEK-440"]
+  B4_SEC -->|"combine 2 clues"| B4_ARC{{"Confidential Archive<br/>MNEMOSYNE"}}
+  B4_LOG -->|"combine 2 clues"| B4_ARC
+  B4_ARC -->|"plain handoff:<br/>BRAVO-3318"| B2_INT
+
+  %% BRE-03 side path
+  B3_INT["BRE-03 Intranet<br/>CHARLIE-1206"]
+  B3_INT -->|"lore: Dis-edges"| B3_META["Metaplanar Observations<br/>DIS-RIM"]
+  B3_META -->|"lore: hollowed worker"| B3_SHAD["Shadow Spirits and Inhabitants<br/>HOLLOWED"]
+  B3_SHAD -.->|"carries half of<br/>final password"| B1_BRANDT
+
+  %% BRE-02
+  B2_INT["BRE-02 Intranet<br/>BRAVO-3318"]
+  B2_INT -->|"lore: coolant valve A-3<br/>+ reserve cell"| B2_MAINT["Maintenance Queue<br/>RESERVE-A3"]
+  B2_MAINT -->|"lore: sealed case<br/>+ shard"| B2_RES["Research Assets<br/>BLACK-GLASS"]
+  B2_RES -->|"plain handoff:<br/>ALPHA-7742"| B1_INT
+
+  %% BRE-01 final
+  B1_INT["BRE-01 Intranet<br/>ALPHA-7742"]
+  B1_INT -->|"lore: Denver rift<br/>2079-02"| B1_META["Metaplanar Access Archive<br/>DENVER-2079"]
+  B1_META -->|"lore: promotion ladder"| B1_PRESS["Executive Pressure Chain<br/>PROMOTION-LADDER"]
+  B1_PRESS -.->|"carries other half of<br/>final password"| B1_BRANDT
+  B1_BRANDT[/"BRE-07 Silent Array<br/>Engineer Brandt Log<br/>SILENT-ARRAY"/]
+
+  %% styling
+  classDef start fill:#1a3d2a,stroke:#3fb950,color:#e6edf3,stroke-width:2px;
+  classDef intranet fill:#1f3247,stroke:#58a6ff,color:#e6edf3;
+  classDef db fill:#3d3520,stroke:#d29922,color:#e6edf3;
+  classDef branch fill:#4a2e1a,stroke:#ff7b35,color:#e6edf3;
+  classDef final fill:#3d1a1a,stroke:#f85149,color:#e6edf3,stroke-width:2px;
+
+  class Start start;
+  class B6_INT,B5_INT,B4_INT,B3_INT,B2_INT,B1_INT intranet;
+  class B6_LAB,B6_AI,B5_RELAY,B5_PERS,B4_SEC,B4_LOG,B3_META,B3_SHAD,B2_MAINT,B2_RES,B1_META,B1_PRESS db;
+  class B4_ARC branch;
+  class B1_BRANDT final;
+  </div>
+</section>
+
+<section>
+  <h2>// BRE-06 — DEEP LAB (START)</h2>
+  <p><strong>Story role:</strong> Player connects here first. The Orpheus chamber, CARE-9 AI, and the deep-lab logs lay the foundation.</p>
+
+  <table>
+    <tr><th>#</th><th>Database</th><th>Password</th><th>Clue Carried</th><th>Unlocks</th></tr>
+    <tr>
+      <td>0</td>
+      <td><strong>Welcome Screen</strong> <span class="new-tag">NEW</span></td>
+      <td><span class="pw given">FOXTROT-9904</span> (given)</td>
+      <td>Print on connect: <span class="clue">"FIRST ACCESS GRANTED. Intranet: FOXTROT-9904. They cycled it remotely — find who is writing about <em>Orpheus</em>."</span></td>
+      <td>BRE-06 Intranet</td>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>BRE-06 Intranet (default)</td>
+      <td><span class="pw">FOXTROT-9904</span></td>
+      <td>Entry "BRE-06 Lab Lock Notice" already reads: <span class="clue">"Orpheus chamber locks were cycled remotely…"</span> → infer keyword <code>ORPHEUS</code></td>
+      <td>Research Laboratory</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>Research Laboratory</td>
+      <td><span class="pw">ORPHEUS</span> <span class="new-tag">replaces 'labor'</span></td>
+      <td>Pattern-AI log explicitly references restart → CARE-9 is named in "no-hunger study" + dissociation cross-refs. Player infers <code>CARE-9</code>.</td>
+      <td>Psychiatric AI Reports</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>Psychiatric AI Reports</td>
+      <td><span class="pw">CARE-9</span> <span class="new-tag">replaces 'care9'</span></td>
+      <td>Add a new closing line in "Final Director Evaluation": <span class="clue">"Relay handoff: <code>ECHO-4429</code> // open ticket with blank author field."</span></td>
+      <td>BRE-05 Intranet</td>
+    </tr>
+  </table>
+  <div class="note">First "Aha!": realizing the welcome-screen hint isn't talking about a literal door — it's the password to the next DB.</div>
+</section>
+
+<section>
+  <h2>// BRE-05 — RELAY STATION</h2>
+  <p><strong>Story role:</strong> Communications and the BRE-07 cover-up trail. Splits the path into BRE-04 and BRE-03.</p>
+
+  <table>
+    <tr><th>#</th><th>Database</th><th>Password</th><th>Clue Carried</th><th>Unlocks</th></tr>
+    <tr>
+      <td>1</td>
+      <td>BRE-05 Intranet</td>
+      <td><span class="pw">ECHO-4429</span></td>
+      <td>"Maintenance Loop" entry already says <span class="clue">"ticket author field is blank"</span> — points at Null-Slate (the courier from BRE-01 lore).</td>
+      <td>Outpost Relay Logs</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>Outpost Relay Logs</td>
+      <td><span class="pw">NULL-SLATE</span> <span class="new-tag">replaces 'database4'</span></td>
+      <td>"Relay Failure Timing" entry: relay failed 9 min after courier arrival. Add a recovered packet header: <span class="clue">"PERS-REG // last query: KESS-C12 // unfinished."</span></td>
+      <td>Personnel Registry</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>Personnel Registry</td>
+      <td><span class="pw">KESS-C12</span> <span class="new-tag">replaces 'database1'</span></td>
+      <td>Vale entry + Kess entry. Add closing memo: <span class="clue">"Glasshouse override granted to chief Vale. Containment site uplink: <code>DELTA-5891</code> // observation post side-channel: <code>CHARLIE-1206</code>."</span></td>
+      <td>BRE-04 Intranet <strong>AND</strong> BRE-03 Intranet</td>
+    </tr>
+  </table>
+  <div class="note">Second "Aha!": Personnel Registry hands them <em>two</em> passwords at once. They get to choose which thread to pull first. (Both are required to reach the final.)</div>
+</section>
+
+<section>
+  <h2>// BRE-04 — CONTAINMENT GLASSHOUSE</h2>
+  <p><strong>Story role:</strong> Security incidents, duplicate badges, the locked sealed-case shard. Internal branching — two parallel threads must both be solved to unlock the Confidential Archive.</p>
+
+  <table>
+    <tr><th>#</th><th>Database</th><th>Password</th><th>Clue Carried</th><th>Unlocks</th></tr>
+    <tr>
+      <td>1</td>
+      <td>BRE-04 Intranet</td>
+      <td><span class="pw">DELTA-5891</span></td>
+      <td>"Glass Event" entry mentions hand-pressure impacts + airlock Q-2. Already split-hints toward 2 internal threads.</td>
+      <td>Security Incidents <strong>+</strong> Security Logbook (both)</td>
+    </tr>
+    <tr>
+      <td>2a</td>
+      <td>Security Incidents</td>
+      <td><span class="pw">VALE-AMBER</span> <span class="new-tag">replaces 'database2'</span></td>
+      <td>Provides the <strong>first half</strong> of the Confidential Archive password: <span class="clue">"Project codename anchor — see executive directives."</span> → "MNEMO"</td>
+      <td>(half of Confidential Archive)</td>
+    </tr>
+    <tr>
+      <td>2b</td>
+      <td>Security Logbook</td>
+      <td><span class="pw">MALEK-440</span> <span class="new-tag">replaces 'sicherheit'</span></td>
+      <td>Provides the <strong>second half</strong>: Sgt. Malek duplicate badge entry ends with: <span class="clue">"…subject answered: 'we learned the SYNE of access.'"</span> → "SYNE"</td>
+      <td>(half of Confidential Archive)</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>Confidential Archive</td>
+      <td><span class="pw">MNEMOSYNE</span> <span class="new-tag">replaces 'database6'</span></td>
+      <td>Project Mnemosyne is named here. Final entry closes with: <span class="clue">"Surface logistics queue: <code>BRAVO-3318</code> // sample crate B2-44 unresolved."</span></td>
+      <td>BRE-02 Intranet</td>
+    </tr>
+  </table>
+  <div class="note">Third "Aha!": Players realize they need BOTH security DBs because the Confidential Archive password is literally split between them. Concatenate MNEMO + SYNE.</div>
+</section>
+
+<section>
+  <h2>// BRE-03 — OBSERVATION RIDGE (SIDE PATH)</h2>
+  <p><strong>Story role:</strong> Sensor ghosts, Dis-edges, the hollowed. Carries one half of the FINAL password to Brandt's log.</p>
+
+  <table>
+    <tr><th>#</th><th>Database</th><th>Password</th><th>Clue Carried</th><th>Unlocks</th></tr>
+    <tr>
+      <td>1</td>
+      <td>BRE-03 Intranet</td>
+      <td><span class="pw">CHARLIE-1206</span></td>
+      <td>"Watch Officer Note" mentions reflection from wrong side of glass. Already hints at metaplanar observations.</td>
+      <td>Metaplanar Observations</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>Metaplanar Observations <span class="new-tag">NEW DB</span></td>
+      <td><span class="pw">DIS-RIM</span></td>
+      <td>Reveals Dis-edges + Aztechnology rivalry. Mentions <span class="clue">"Hollowed gather at the dis-rim — never speak. Choir behavior — see Shadow Spirits archive."</span></td>
+      <td>Shadow Spirits & Inhabitants</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>Shadow Spirits & Inhabitants</td>
+      <td><span class="pw">HOLLOWED</span> <span class="new-tag">replaces 'schatten'</span></td>
+      <td>"Drained Choir" log ends with new closing memo: <span class="clue">"Field codename of the failed northern outpost: SILENT — second half held in BRE-01 director archive."</span></td>
+      <td>(carries "SILENT" half of <code>SILENT-ARRAY</code>)</td>
+    </tr>
+  </table>
+  <div class="note warn">Note: This side path is <strong>required</strong>. A player who skips BRE-03 can reach the Brandt log slot but cannot derive its password. Hint should be given when they try the wrong password twice in a row.</div>
+</section>
+
+<section>
+  <h2>// BRE-02 — EXTRACTION & LOGISTICS</h2>
+  <p><strong>Story role:</strong> Black-sand extraction, sample audits, the sealed case + black glass shard.</p>
+
+  <table>
+    <tr><th>#</th><th>Database</th><th>Password</th><th>Clue Carried</th><th>Unlocks</th></tr>
+    <tr>
+      <td>1</td>
+      <td>BRE-02 Intranet</td>
+      <td><span class="pw">BRAVO-3318</span></td>
+      <td>"Sample Audit" mentions crate B2-44 mass delta. Sets up Research Assets path.</td>
+      <td>Maintenance Queue</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>Maintenance Queue</td>
+      <td><span class="pw">RESERVE-A3</span> <span class="new-tag">replaces 'database5'</span></td>
+      <td>Coolant valve A-3 fault + Reserve Cell entries combine to a 2-token password. New closing memo: <span class="clue">"Sealed case escort key archived in research vault."</span></td>
+      <td>Research Assets</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>Research Assets</td>
+      <td><span class="pw">BLACK-GLASS</span> <span class="new-tag">replaces 'database3'</span></td>
+      <td>Black Glass Data Shard entry. New trailing entry: <span class="clue">"Gate Annex relay: <code>ALPHA-7742</code> // Director Voss requested escort to BRE-01."</span></td>
+      <td>BRE-01 Intranet</td>
+    </tr>
+  </table>
+</section>
+
+<section>
+  <h2>// BRE-01 — GATE ANNEX (FINAL SITE)</h2>
+  <p><strong>Story role:</strong> Gatehead. The full Ares cover-up. The Brandt log is the climax.</p>
+
+  <table>
+    <tr><th>#</th><th>Database</th><th>Password</th><th>Clue Carried</th><th>Unlocks</th></tr>
+    <tr>
+      <td>1</td>
+      <td>BRE-01 Intranet</td>
+      <td><span class="pw">ALPHA-7742</span></td>
+      <td>Roster + Fault Ledger. Already hints at Gatehead breach.</td>
+      <td>Metaplanar Access Archive</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>Metaplanar Access Archive</td>
+      <td><span class="pw">DENVER-2079</span> <span class="new-tag">replaces 'ares1'</span></td>
+      <td>Denver Rift Contact entry is literally dated 2079-02 — player derives <code>DENVER-2079</code> from the entry's own headline.</td>
+      <td>Executive Pressure Chain</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>Executive Pressure Chain</td>
+      <td><span class="pw">PROMOTION-LADDER</span> <span class="new-tag">replaces 'ares2'</span></td>
+      <td>"Executive Opportunity Brief" already contains: <span class="clue">"…we are not running a site. We are holding a promotion ladder."</span> Final entry includes new memo: <span class="clue">"Northern outpost codename: ARRAY — second half held in BRE-03 spirit archive."</span></td>
+      <td>(carries "ARRAY" half of final password)</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td><strong>Engineer Brandt's Personal Log</strong></td>
+      <td><span class="pw final">SILENT-ARRAY</span> <span class="new-tag">replaces 'brandt'</span></td>
+      <td>FINAL. Requires synthesis: <code>SILENT</code> (from BRE-03 Shadow Spirits) + <code>ARRAY</code> (from BRE-01 Executive Pressure). The full chain of doom from BRE-07.</td>
+      <td>END — full story revealed</td>
+    </tr>
+  </table>
+  <div class="note">Final "Aha!": After unlocking all of BRE-01, the player has half a codename. They need to remember the other half from a side database three sites back. The Brandt log is the payoff — they finally read the firsthand account of what happens to staff in the Schwarze Wüste.</div>
+</section>
+
+<section>
+  <h2>// DESIGN NOTES</h2>
+
+  <h3>Clue-type variety per edge</h3>
+  <ul>
+    <li><strong>Plain handoff (4 edges):</strong> previous DB literally prints the next password. Used for site→site transitions to avoid dead-ends.</li>
+    <li><strong>Lore-keyword (8 edges):</strong> the next password is a name/term highlighted in the current DB (Orpheus, CARE-9, Null-Slate, Kess-C12, Malek-440, Hollowed, Black-Glass, Denver-2079).</li>
+    <li><strong>Cipher / composite (2 edges):</strong> the BRE-04 Confidential Archive needs MNEMO+SYNE concatenation; the final Brandt log needs SILENT+ARRAY combined across sites.</li>
+  </ul>
+
+  <h3>Failsafes (so a player can never fully soft-lock)</h3>
+  <ul>
+    <li>After 3 failed password attempts on a DB, the terminal should print: <span class="clue">"Hint: cross-reference the highlighted entity name."</span></li>
+    <li>The "Operator" can be a recurring fallback NPC who answers a single radio question per site (in-fiction reason for soft-hint).</li>
+    <li>BRE-03 must be marked as required — consider a Personnel Registry note that explicitly says <span class="clue">"Brandt's clearance was issued through ridge-line observation. Without ridge logs his archive cannot be addressed."</span></li>
+  </ul>
+
+  <h3>New databases I'm proposing (1 net-new)</h3>
+  <ul>
+    <li><strong>BRE-03 // Metaplanar Observations</strong> — slot exists in your folder (<code>BRE-03 metaplanar_observations_de.md</code>) but wasn't part of my deep read. If it's already drafted, just align its password to <code>DIS-RIM</code> and add the closing memo to Shadow Spirits.</li>
+    <li>All other databases reuse what you already have — only the passwords and a few closing memo lines need updating.</li>
+  </ul>
+
+  <h3>What stays / what changes</h3>
+  <ul>
+    <li><strong>Stays:</strong> all your existing entries, lore, German narrative voice, file structure.</li>
+    <li><strong>Changes:</strong> the <code>password:</code> frontmatter field on each DB (placeholders like <code>database1</code> become lore-driven), plus one new closing memo per DB acting as the handoff clue.</li>
+    <li>If you'd prefer to keep the original passwords (<code>labor</code>, <code>schatten</code>, etc.), the structure still works — just the clues need to point at the kept words.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>// PLAYER FLOW SUMMARY (one paragraph)</h2>
+  <p>The player connects to BRE-06. The welcome screen prints the intranet password and a one-line operator note hinting at "Orpheus." Inside, the BRE-06 intranet hands them <code>ORPHEUS</code> through a lab-lock notice. Inside the Research Lab, they meet CARE-9 by name. Inside the CARE-9 reports, the AI's final evaluation gives them a plain handoff to BRE-05 (<code>ECHO-4429</code>). From BRE-05 they follow Null-Slate the courier into the Personnel Registry, which gives them <em>two</em> site passwords at once — BRE-04 and BRE-03. They puzzle through BRE-04's split security databases (combining MNEMO + SYNE for the Confidential Archive) and the BRE-03 side-trip (which whispers half a codename: SILENT). BRE-04 hands them BRE-02. BRE-02 hands them BRE-01. Inside BRE-01 they unlock the Ares discovery records and the executive pressure chain — which gives them the second half: ARRAY. Putting SILENT and ARRAY together, they finally crack open Brandt's personal log and read what really happened at BRE-07.</p>
+</section>
+
+</main>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      background: '#1f2630',
+      primaryColor: '#1f3247',
+      primaryTextColor: '#e6edf3',
+      primaryBorderColor: '#58a6ff',
+      lineColor: '#8b949e',
+      textColor: '#e6edf3',
+      fontFamily: 'JetBrains Mono, Consolas, monospace',
+      fontSize: '13px'
+    },
+    flowchart: {
+      htmlLabels: true,
+      curve: 'basis',
+      nodeSpacing: 40,
+      rankSpacing: 60
+    }
+  });
+</script>
+</body>
+</html>

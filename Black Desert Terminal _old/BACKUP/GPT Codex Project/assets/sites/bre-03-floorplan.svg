@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" role="img" aria-labelledby="title desc">
+  <title id="title">BRE-03 placeholder floorplan</title>
+  <desc id="desc">Generated tactical SVG floorplan for BRE-03.</desc>
+  <rect width="960" height="560" fill="#05070a"/>
+  <g fill="none" stroke="#00f0ff" stroke-width="4" opacity=".78">
+    <polygon points="130,170 370,90 520,180 440,330 180,330"/>
+    <rect x="590" y="120" width="210" height="310"/>
+    <path d="M440 250H590M230 330v80h480v20"/>
+  </g>
+  <g stroke="#39ff14" stroke-width="2" opacity=".72">
+    <path d="M170 205l190-62M195 250h250M625 175H765M625 225H765M625 275H765"/>
+  </g>
+  <g fill="#ffb000" font-family="monospace" font-size="34" letter-spacing="4">
+    <text x="92" y="62">BRE-03 // OBSERVATION</text>
+    <text x="185" y="238">RIDGE</text>
+    <text x="620" y="250">WATCH</text>
+  </g>
+  <g fill="#ff003c">
+    <circle cx="330" cy="142" r="10"/>
+    <circle cx="705" cy="430" r="8"/>
+  </g>
+</svg>

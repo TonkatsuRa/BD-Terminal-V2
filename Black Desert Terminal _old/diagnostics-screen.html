@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARES Base Diagnostic</title>
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/terminal.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/themes.css">
+</head>
+<body class="diagnostic-screen-page terminal-ready">
+    <div class="diagnostic-overlay active diagnostic-screen-overlay" id="diagnosticOverlay" aria-hidden="false">
+        <div class="diagnostic-panel glow" role="main" aria-labelledby="diagnosticTitle">
+            <div class="diagnostic-header">
+                <div>
+                    <div class="diagnostic-title glow" id="diagnosticTitle">BASE DIAGNOSTIC</div>
+                    <div class="diagnostic-meta" id="diagnosticMeta">SCAN BUS: STANDBY</div>
+                </div>
+            </div>
+            <div class="diagnostic-grid diagnostic-dashboard-grid">
+                <div class="diagnostic-card" id="diagGeneratorCard">
+                    <div class="diagnostic-label"><span>GATE STABILITY // DUAL TRACE</span><span id="diagGeneratorStatus">CAL</span></div>
+                    <div class="diagnostic-readout telemetry-widget" id="diagGenerator" role="img" aria-label="SVG dual trace oscilloscope for gate stability"></div>
+                </div>
+                <div class="diagnostic-card" id="diagLifeCard">
+                    <div class="diagnostic-label"><span>SHAREHOLDER VALUE // PROJECTION</span><span id="diagLifeStatus">ROI</span></div>
+                    <div class="diagnostic-readout telemetry-widget" id="diagLife" role="img" aria-label="Animated shareholder value chart showing expenditure rising while profit falls"></div>
+                </div>
+                <div class="diagnostic-card" id="diagOutpostCard">
+                    <div class="diagnostic-label"><span>TACTICAL SWEEP // RADAR</span><span id="diagOutpostStatus">PING</span></div>
+                    <div class="diagnostic-readout telemetry-widget" id="diagOutpost" role="img" aria-label="SVG tactical radar sweep for relay and drone links"></div>
+                </div>
+                <div class="diagnostic-card" id="diagNetworkCard">
+                    <div class="diagnostic-label"><span>ENTITY NOISE // SPECTRUM</span><span id="diagNetworkStatus">SYNC</span></div>
+                    <div class="diagnostic-readout telemetry-widget" id="diagNetwork" role="img" aria-label="SVG spectrum waterfall for entity noise and communications"></div>
+                </div>
+                <div class="diagnostic-card diagnostic-card-feature" id="diagAlarmCard">
+                    <div class="diagnostic-label">
+                        <span>BIOSCAN ARRAY // VITALS</span>
+                        <span class="diagnostic-vitals-controls" aria-label="Select bioscan subject">
+                            <button class="diagnostic-cycle-btn" id="diagVitalsPrev" type="button" aria-label="Previous vital subject">&lt;-</button>
+                            <span id="diagVitalsSubject">SUBJ-01</span>
+                            <button class="diagnostic-cycle-btn" id="diagVitalsNext" type="button" aria-label="Next vital subject">-&gt;</button>
+                        </span>
+                        <span id="diagAlarmStatus">BIO</span>
+                    </div>
+                    <div class="diagnostic-readout telemetry-widget telemetry-widget-large" id="diagAlarm" role="img" aria-label="Large animated bioscan array with detailed crew vital traces"></div>
+                </div>
+                <div class="diagnostic-card" id="diagPowerCard">
+                    <div class="diagnostic-label"><span>REACTOR // CONTAINMENT // SYNC</span><span id="diagPowerStatus">RESERVE</span></div>
+                    <div class="diagnostic-readout telemetry-widget" id="diagPower" role="img" aria-label="SVG reactor containment and sync telemetry"></div>
+                </div>
+                <div class="diagnostic-card" id="diagSecurityCard">
+                    <div class="diagnostic-label"><span>ANOMALY TOMOGRAPHY // FIELD</span><span id="diagSecurityStatus">CHECK</span></div>
+                    <div class="diagnostic-readout telemetry-widget" id="diagSecurity" role="img" aria-label="SVG anomaly tomography wireframe field intensity map"></div>
+                </div>
+                <div class="diagnostic-card" id="diagEventsCard">
+                    <div class="diagnostic-label"><span>LIVE EVENT LOG // DIAGNOSTICS</span><span id="diagEventsStatus">FEED</span></div>
+                    <div class="diagnostic-readout telemetry-widget" id="diagEvents" role="log" aria-label="Live diagnostic event feed"></div>
+                </div>
+                <div class="diagnostic-card" id="diagIntegrityCard">
+                    <div class="diagnostic-label"><span>SIGNAL STRENGTH</span><span id="diagIntegrityStatus">LOCK</span></div>
+                    <div class="diagnostic-readout telemetry-widget" id="diagIntegrity" role="img" aria-label="SVG signal strength telemetry with dB meter and carrier lock"></div>
+                </div>
+                <div class="diagnostic-card" id="diagUplinkCard">
+                    <div class="diagnostic-label"><span>UPLINK // PROCESSOR LOAD</span><span id="diagUplinkStatus">PROC</span></div>
+                    <div class="diagnostic-readout telemetry-widget" id="diagUplink" role="img" aria-label="SVG uplink sync and processor load telemetry"></div>
+                </div>
+            </div>
+            <div class="diagnostic-footer">
+                <span id="diagnosticTicker">AWAITING SENSOR BUS</span>
+                <span>[ ESC BACK ]</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
+    <script src="js/state.js" defer></script>
+    <script src="js/utils.js" defer></script>
+    <script src="js/audio.js" defer></script>
+    <script src="js/status-profile.js" defer></script>
+    <script src="js/sites.js" defer></script>
+    <script src="js/diagnostics.js" defer></script>
+    <script src="js/tool-screen-bridge.js" defer></script>
+    <script src="js/diagnostics-screen.js" defer></script>
+</body>
+</html>
