@@ -44,7 +44,7 @@ function slashifyUsage(usage) {
  * @param {string[]} [definition.aliases]
  * @param {string} [definition.usage]
  * @param {string} [definition.description]
- * @param {string} [definition.requiredAccess] - 'employee' | 'elevated' | 'admin'
+ * @param {string} [definition.requiredAccess] - 'public' | 'employee' | 'restricted' | 'management' | 'admin'
  * @param {boolean} [definition.adminRequired] - shorthand for requiredAccess: admin
  * @param {boolean} [definition.hidden] - cheat codes: bare name only, no /alias, no help listing
  */
@@ -55,12 +55,12 @@ export function registerCommand(definition) {
         usage: definition.name.toUpperCase(),
         description: '',
         adminRequired: false,
-        requiredAccess: ACCESS_LEVELS.employee,
+        requiredAccess: ACCESS_LEVELS.public,
         hidden: false,
         ...definition
     };
     command.requiredAccess = normalizeAccessLevel(
-        definition.requiredAccess || (command.adminRequired ? ACCESS_LEVELS.admin : ACCESS_LEVELS.employee)
+        definition.requiredAccess || (command.adminRequired ? ACCESS_LEVELS.admin : ACCESS_LEVELS.public)
     );
     command.adminRequired = command.requiredAccess === ACCESS_LEVELS.admin;
     if (!command.hidden) command.usage = slashifyUsage(command.usage);

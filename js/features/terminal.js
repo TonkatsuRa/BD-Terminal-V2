@@ -29,7 +29,7 @@ import {
 } from './status.js';
 import {
     isDatabaseLoaded, databaseCapacityFull, showDatabaseSelector, showDatabaseSlotDialog,
-    searchDatabase, fuzzySearch, showCategories, listAllEntries, handleEjectCommand,
+    searchDatabase, fuzzySearch, showCategories, listAllEntries, listDatabaseEntries, handleEjectCommand,
     updateDatabaseSlotIndicators
 } from './database.js';
 import {
@@ -881,7 +881,7 @@ function showHelp() {
         { text: '', className: '' }
     ];
 
-    byLevel(ACCESS_LEVELS.employee).forEach(command => {
+    [...byLevel(ACCESS_LEVELS.public), ...byLevel(ACCESS_LEVELS.employee)].forEach(command => {
         lines.push({ text: command.usage, className: 't-cyan' });
         lines.push({ text: `  ${command.description}`, className: '' });
         lines.push({ text: '', className: '' });
@@ -889,11 +889,11 @@ function showHelp() {
 
     lines.push(
         { text: '───────────────────────────────────────────────────────', className: 't-dim' },
-        { text: 'ELEVATED COMMANDS (requires ACCESS)', className: 't-amber' },
+        { text: 'CLEARED COMMANDS (requires ACCESS: Restricted+)', className: 't-amber' },
         { text: '───────────────────────────────────────────────────────', className: 't-dim' },
         { text: '', className: '' }
     );
-    byLevel(ACCESS_LEVELS.elevated).forEach(command => {
+    [...byLevel(ACCESS_LEVELS.restricted), ...byLevel(ACCESS_LEVELS.management)].forEach(command => {
         lines.push({ text: command.usage, className: 't-amber' });
         lines.push({ text: `  ${command.description}`, className: '' });
         lines.push({ text: '', className: '' });
@@ -1013,8 +1013,17 @@ export function registerTerminalCommands() {
         }
     });
     registerCommand({ name: 'clear', aliases: ['cls'], usage: 'CLEAR', description: 'Clear the CLI transcript.', run: () => clearOutput({ force: true }) });
-    registerCommand({ name: 'access', aliases: ['login', 'admin'], usage: 'ACCESS', description: 'Request Elevated or Admin clearance.', run: () => showAccessDialog() });
-    registerCommand({ name: 'logout', usage: 'LOGOUT', description: 'Terminate elevated clearance session.', requiredAccess: ACCESS_LEVELS.elevated, run: () => logout() });
+    registerCommand({ name: 'access', aliases: ['login', 'admin'], usage: 'ACCESS', description: 'Raise clearance: Employee, Restricted, Management, or Administrator.', run: () => showAccessDialog() });
+    registerCommand({ name: 'logout', usage: 'LOGOUT', description: 'Terminate elevated clearance session.', requiredAccess: ACCESS_LEVELS.employee, run: () => logout() });
+    registerCommand({
+        name: 'list',
+        usage: 'LIST [CATEGORY]',
+        description: 'List categories; LIST <category> prints its entries (content at Employee+).',
+        run: async ctx => {
+            const logged = await runRemoteDataAccessLog('LIST');
+            listDatabaseEntries(ctx.args, { clear: !logged });
+        }
+    });
     registerCommand({
         name: 'list all',
         aliases: ['listall'],
@@ -1031,7 +1040,7 @@ export function registerTerminalCommands() {
         aliases: ['fuzzy', 'fuzzy search'],
         usage: 'FSEARCH <term>',
         description: 'Fuzzy search topics, IDs/persons, dates, keywords, and message text.',
-        requiredAccess: ACCESS_LEVELS.elevated,
+        requiredAccess: ACCESS_LEVELS.management,
         run: async ctx => {
             if (!isDatabaseLoaded()) {
                 printNoDatabaseLoaded();

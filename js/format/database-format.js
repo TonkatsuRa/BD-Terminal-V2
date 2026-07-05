@@ -11,27 +11,48 @@ import { normalizeStatusKey, cleanStatusValue } from '../core/utils.js';
 
 // Access level strings — duplicated as plain constants so this module stays
 // dependency-light and Node-safe. Must match core/state.js ACCESS_LEVELS.
+// Five clearance tiers. Ranks: public 0 · employee 1 · restricted 2 ·
+// management 3 · admin 4. Legacy content maps: "Elevated"/"shareholder" →
+// management, "Admin" → admin; "Restricted" is its own tier now.
 export const ENTRY_ACCESS = Object.freeze({
+    public: 'public',
     employee: 'employee',
-    elevated: 'elevated',
+    restricted: 'restricted',
+    management: 'management',
     admin: 'admin'
+});
+
+export const ENTRY_ACCESS_RANKS = Object.freeze({
+    public: 0,
+    employee: 1,
+    restricted: 2,
+    management: 3,
+    admin: 4
 });
 
 /**
  * Normalize an entry's access/clearance declaration to one of ENTRY_ACCESS.
- * Accepts labels ("Admin", "restricted", "shareholder"), numeric clearance
- * levels, and the CONFIDENTIAL category convention.
+ * Accepts labels ("Admin", "Management", "restricted", legacy "Elevated"/
+ * "shareholder"), numeric clearance levels 0-4, and the CONFIDENTIAL
+ * category convention.
  */
 export function normalizeEntryAccess(value, entry = {}) {
     const raw = String(value || '').trim().toLowerCase();
-    const clearance = Number.parseInt(entry.clearance || value || '0', 10);
     const category = String(entry.category || '').trim().toLowerCase();
+    const numericRaw = Number.parseInt(raw, 10);
+    const clearance = Number.isNaN(numericRaw)
+        ? Number.parseInt(entry.clearance || '0', 10)
+        : numericRaw;
 
     if (raw === ENTRY_ACCESS.admin || raw.includes('admin') || raw.includes('full')) return ENTRY_ACCESS.admin;
-    if (raw === ENTRY_ACCESS.elevated || raw.includes('elevated') || raw.includes('shareholder')) return ENTRY_ACCESS.elevated;
-    if (raw === ENTRY_ACCESS.employee || raw.includes('employee') || raw.includes('cleared') || raw.includes('public')) return ENTRY_ACCESS.employee;
+    if (raw === ENTRY_ACCESS.management || raw.includes('management') || raw.includes('manager') || raw.includes('elevated') || raw.includes('shareholder')) return ENTRY_ACCESS.management;
+    if (raw === ENTRY_ACCESS.restricted || raw.includes('restricted')) return ENTRY_ACCESS.restricted;
+    if (raw === ENTRY_ACCESS.employee || raw.includes('employee') || raw.includes('cleared')) return ENTRY_ACCESS.employee;
+    if (raw === ENTRY_ACCESS.public || raw.includes('public') || raw.includes('everyone') || raw.includes('open')) return ENTRY_ACCESS.public;
     if (raw.includes('confidential') || category === 'confidential' || clearance >= 4) return ENTRY_ACCESS.admin;
-    if (raw.includes('restricted') || clearance >= 3) return ENTRY_ACCESS.elevated;
+    if (clearance === 3) return ENTRY_ACCESS.management;
+    if (clearance === 2) return ENTRY_ACCESS.restricted;
+    if (clearance === 0 && raw !== '') return ENTRY_ACCESS.public;
     return ENTRY_ACCESS.employee;
 }
 

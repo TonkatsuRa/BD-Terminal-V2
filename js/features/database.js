@@ -9,7 +9,7 @@ import { AudioEngine } from '../core/audio.js';
 import { asciiBar, asciiSweep, asciiGraph, spinner } from '../core/ascii.js';
 import { loadScriptOnce } from '../core/loader.js';
 import {
-    AppState, setAppState, ACCESS_LEVELS, hasAccess, accessLevelLabel, accessLevelClass
+    AppState, setAppState, ACCESS_LEVELS, hasAccess, accessLevelLabel, accessLevelClass, accessRank
 } from '../core/state.js';
 import {
     parseMarkdownDatabase, parseLegacyDatabase, normalizeEntryAccess,
@@ -17,6 +17,7 @@ import {
     visibleDatabasesForSite as visibleDatabasesForSitePure
 } from '../format/database-format.js';
 import { balanceColorTagsAcrossLines } from '../format/colors.js';
+import { applyRedactionMarkup } from '../format/redaction.js';
 import { print, clearOutput } from '../terminal/output.js';
 import { printNoDatabaseLoaded, printDatabaseSlotsFull } from '../terminal/messages.js';
 import { contentGet } from './status.js';
@@ -98,6 +99,20 @@ export function entryAccessLevel(entry) {
     return normalizeEntryAccess(entry.access || entry.clearance, entry);
 }
 
+/** Current reader's clearance rank (0 Public … 4 Administrator). */
+function viewerRank() {
+    return accessRank(AppState.accessLevel);
+}
+
+/**
+ * Entry message as the CURRENT reader may see it: inline [redact=N] spans
+ * above their clearance become █ blocks, tags are stripped. This is also
+ * what search and snippets operate on, so hidden spans cannot leak.
+ */
+export function entryVisibleMessage(entry) {
+    return applyRedactionMarkup(entryMessage(entry), viewerRank());
+}
+
 export function canReadEntry(entry) {
     return hasAccess(entryAccessLevel(entry));
 }
@@ -126,7 +141,9 @@ function entrySearchFields(entry, mode = 'search') {
     if (mode === 'fsearch') {
         fields.push(
             { name: 'idOrPerson', label: 'ID/PERSON', text: entryIdOrPerson(entry), weight: 88 },
-            { name: 'message', label: 'MESSAGE', text: entryMessage(entry), weight: 34 }
+            // Search the reader-visible text only: inline-redacted spans are
+            // already █-masked here, so sealed keywords can't be probed.
+            { name: 'message', label: 'MESSAGE', text: entryVisibleMessage(entry), weight: 34 }
         );
     }
     return fields.filter(field => compactText(field.text));
@@ -175,7 +192,7 @@ function makeEntrySnippet(entry, query, matchedField = 'message') {
         matchedField === 'keywords' ? entryKeywords(entry) :
         matchedField === 'date' ? entryDate(entry) :
         matchedField === 'idOrPerson' ? entryIdOrPerson(entry) :
-        entryMessage(entry)
+        entryVisibleMessage(entry)
     );
     if (!sourceText) return '';
 
@@ -253,7 +270,7 @@ function printSearchResults(term, matches, options = {}) {
         print(options.fuzzy
             ? 'FSEARCH checks topic, ID/person, date, keywords, and message content.'
             : 'SEARCH checks topic, date, and listed keywords only.', 't-dim');
-        if (!options.fuzzy) print('Use /FSEARCH with Elevated clearance to search message content.', 't-dim');
+        if (!options.fuzzy) print('Use /FSEARCH with Management clearance to search message content.', 't-dim');
         print('');
         return;
     }
@@ -294,7 +311,82 @@ export function showCategories(options = {}) {
         print(`  ${cat} .................. ${categories[cat]} entries`, cls);
     });
     print('═══════════════════════════════════', 't-dim');
+    if (options.hint) print('Type /LIST <CATEGORY> to read every entry in a category.', 't-dim');
     print('');
+}
+
+/**
+ * /LIST command body.
+ * - Public reader: the classic title/category index (no message content);
+ *   with a category argument, the same index filtered to that category.
+ * - Employee and above: LIST alone shows categories with entry counts;
+ *   LIST <category> prints every entry in the category WITH content
+ *   (entry-level and inline redaction still apply per clearance).
+ */
+export function listDatabaseEntries(request = '', options = {}) {
+    if (!databaseLoadedFlag) {
+        printNoDatabaseLoaded();
+        return;
+    }
+    const employeePlus = hasAccess(ACCESS_LEVELS.employee);
+    const query = compactText(String(request || '').replace(/^["']|["']$/g, '')).toUpperCase();
+
+    if (!query) {
+        if (employeePlus) {
+            showCategories({ clear: options.clear, hint: true });
+        } else {
+            if (options.clear !== false) clearOutput({ force: true });
+            listAllEntries();
+            print('Public terminal: titles only. Authenticate via /ACCESS to read entry content.', 't-dim');
+            print('');
+        }
+        return;
+    }
+
+    const available = [];
+    visibleDatabaseEntries().forEach(entry => {
+        const cat = String(entry.category || 'GENERAL').toUpperCase();
+        if (!available.includes(cat)) available.push(cat);
+    });
+    const category = available.find(cat => cat === query)
+        || available.find(cat => cat.startsWith(query))
+        || available.find(cat => cat.includes(query));
+    if (!category) {
+        AudioEngine.errorBuzz();
+        print('');
+        print(`CATEGORY NOT FOUND: "${query}"`, 't-red');
+        print(`Available: ${available.join(', ') || 'none'}`, 't-dim');
+        print('');
+        return;
+    }
+
+    const entries = visibleDatabaseEntries().filter(entry => String(entry.category || 'GENERAL').toUpperCase() === category);
+    if (options.clear !== false) clearOutput({ force: true });
+    print('');
+    print(`CATEGORY: ${category}`, category === 'CONFIDENTIAL' ? 't-magenta' : 't-bright');
+    print(`${entries.length} ENTR${entries.length === 1 ? 'Y' : 'IES'}`, 't-dim');
+    print('--- CATEGORY LISTING --------------------------------------', 'cli-divider t-dim');
+
+    if (!employeePlus) {
+        entries
+            .slice()
+            .sort((a, b) => entryTopic(a).localeCompare(entryTopic(b)))
+            .forEach((entry, index) => {
+                const marker = String(index + 1).padStart(2, '0');
+                const access = entryAccessLevel(entry);
+                print(`  ${marker}. ${entryTopic(entry)} :: ${entryDate(entry) || 'UNDATED'} :: ${accessLevelLabel(access)}`, accessLevelClass(access));
+            });
+        print('');
+        print('Public terminal: titles only. Authenticate via /ACCESS to read entry content.', 't-dim');
+        print('');
+        return;
+    }
+
+    entries.forEach((entry, index) => printEntry(entry, {
+        index: index + 1,
+        total: entries.length,
+        label: `ENTRY ${String(index + 1).padStart(2, '0')}/${String(entries.length).padStart(2, '0')}`
+    }));
 }
 
 export function listAllEntries() {
@@ -332,9 +424,9 @@ export function printEntry(entry, options = {}) {
     const access = entryAccessLevel(entry);
     const cls = accessLevelClass(access);
     const readable = canReadEntry(entry);
-    const label = options.index
+    const label = options.label || (options.index
         ? `RESULT ${String(options.index).padStart(2, '0')}/${String(options.total || options.index).padStart(2, '0')}`
-        : 'DATABASE ENTRY';
+        : 'DATABASE ENTRY');
     const border = '-'.repeat(52);
     print(`+-[ ${label} // ${entry.category || 'GENERAL'} ]${border}`.slice(0, 62), `${cls} entry-divider`);
     print(`| TOPIC     : ${entryTopic(entry)}`, cls);
@@ -353,7 +445,10 @@ export function printEntry(entry, options = {}) {
     }
     print(`+${'-'.repeat(60)}`, 'entry-divider t-dim');
     if (!readable) print(`| MESSAGE   : REDACTED - ${accessLevelLabel(access).toUpperCase()} CLEARANCE REQUIRED`, 't-red');
-    const message = readable ? entryMessage(entry) : redactMessageContent(entryMessage(entry));
+    // Readable entries still pass through inline redaction: [redact=N] spans
+    // above the reader's clearance render as █ blocks. Locked entries stay
+    // fully masked as before.
+    const message = readable ? entryVisibleMessage(entry) : redactMessageContent(entryMessage(entry));
     // Re-balance multi-line [color=...] regions so each printed line is
     // self-contained for the line-by-line pipeline.
     const messageText = readable

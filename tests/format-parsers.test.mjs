@@ -62,18 +62,26 @@ const t = new TestRunner('Format parsers');
 // ---- access normalization ----
 [
     ['Admin', ENTRY_ACCESS.admin],
+    ['Administrator', ENTRY_ACCESS.admin],
     ['full', ENTRY_ACCESS.admin],
-    ['Elevated', ENTRY_ACCESS.elevated],
-    ['shareholder', ENTRY_ACCESS.elevated],
-    ['restricted', ENTRY_ACCESS.elevated],
+    ['Management', ENTRY_ACCESS.management],
+    ['Elevated', ENTRY_ACCESS.management],       // legacy label
+    ['shareholder', ENTRY_ACCESS.management],    // legacy label
+    ['Restricted', ENTRY_ACCESS.restricted],
     ['Employee', ENTRY_ACCESS.employee],
-    ['public', ENTRY_ACCESS.employee],
+    ['Public', ENTRY_ACCESS.public],
+    ['0', ENTRY_ACCESS.public],
+    ['1', ENTRY_ACCESS.employee],
+    ['2', ENTRY_ACCESS.restricted],
+    ['3', ENTRY_ACCESS.management],
+    ['4', ENTRY_ACCESS.admin],
     ['', ENTRY_ACCESS.employee],
 ].forEach(([raw, expected]) => {
     t.assertEqual(normalizeEntryAccess(raw), expected, `normalizeEntryAccess("${raw}") -> ${expected}`);
 });
 t.assertEqual(normalizeEntryAccess('', { clearance: '4' }), ENTRY_ACCESS.admin, 'clearance 4 -> admin');
-t.assertEqual(normalizeEntryAccess('', { clearance: '3' }), ENTRY_ACCESS.elevated, 'clearance 3 -> elevated');
+t.assertEqual(normalizeEntryAccess('', { clearance: '3' }), ENTRY_ACCESS.management, 'clearance 3 -> management');
+t.assertEqual(normalizeEntryAccess('', { clearance: '2' }), ENTRY_ACCESS.restricted, 'clearance 2 -> restricted');
 t.assertEqual(normalizeEntryAccess('', { category: 'CONFIDENTIAL' }), ENTRY_ACCESS.admin, 'CONFIDENTIAL category -> admin');
 
 // ---- legacy database format ----

@@ -78,6 +78,9 @@ export function normalizeSearchText(value) {
         .normalize('NFKD')
         .replace(/[̀-ͯ]/g, '')
         .toLowerCase()
+        // ß is not decomposed by NFKD and would otherwise become a word break
+        // ("straße" → "stra e"). Fold to "ss" so German queries match either way.
+        .replace(/ß/g, 'ss')
         .replace(/[^a-z0-9]+/g, ' ')
         .trim();
 }

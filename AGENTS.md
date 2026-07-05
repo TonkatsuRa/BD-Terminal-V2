@@ -96,13 +96,17 @@ clearance: 1
 body:
 The entry body. [color=amber]Inline color[/color] uses BBCode-style tags
 (green, amber, cyan, red, magenta, dim, bright).
+[redact=2]Sealed until Restricted, with [redact=3]deeper keywords[/redact]
+inside[/redact] — nested levels, higher wins.
 
 ![alt text](data:image/png;base64,...)
 ```
 
-- **Canonical parser:** `js/format/database-format.js` (`parseMarkdownDatabase`). The studio editor keeps a behaviorally-equivalent inline copy; `tests/database-roundtrip.test.mjs` cross-checks entry counts between the two on every shipped file — run it after touching either.
+- **Canonical parser:** `js/format/database-format.js` (`parseMarkdownDatabase`). The studio editor inlines a verbatim copy in its `<script id="studio-canonical-parser">` block (plus the canonical serializer). `tests/editor-conformance.test.mjs` asserts byte-identical parses and lossless serialize→parse round-trips on every shipped file, `tests/database-roundtrip.test.mjs` keeps the fast structural checks, and `tests/validate-databases.test.mjs` lints content + the manifest chain — run all three after touching the parser, the studio, or any database file. `tests/editor-smoke.mjs` (jsdom) drives the studio UI end to end.
 - Unknown entry keys are preserved (`extras` round-tripping).
 - **Site gating** (which databases the LOAD menu shows): manifest `sites` array > frontmatter `sites:` line > filename prefix (`Terminal *` → always, `BRE-XX *` → that site) > default always. Pure logic in `database-format.js` (`inferEntrySites`, `visibleDatabasesForSite`), fetch cache in `features/database.js`.
+- **Clearance (5 tiers, rank 0-4):** public / employee / restricted / management / admin — `ENTRY_ACCESS` + `normalizeEntryAccess` in `database-format.js`, terminal-side ranks in `core/state.js`. Entries declare `Access:` (labels or 0-4; legacy "Elevated" → management). Whole entries above the reader's rank render fully redacted.
+- **Inline redaction:** `[redact=N]…[/redact]` spans in message bodies (`js/format/redaction.js`, copied verbatim into the studio block). Nested spans: max open level wins. Spans above the reader's rank become █ (word shape kept); FSEARCH and snippets only see the reader-visible text. `tests/redaction.test.mjs` covers the engine.
 - **Inline colors:** `TERMINAL_COLOR_NAMES` in `js/core/utils.js` is the single source. Adding a color: add it there, add the `.t-NAME` rule in `css/terminal.css`, and add it to the studio's swatch list.
 - **Embedded images:** `IMG_LINE_RE` in `js/core/utils.js`. The typewriter never types image lines (a 100KB Base64 string would otherwise be typed character-by-character — keep the short-circuit in `terminal/output.js`).
 
@@ -131,7 +135,7 @@ The entry body. [color=amber]Inline color[/color] uses BBCode-style tags
 ## Keys & passwords (in-world, not security)
 
 - `ENCRYPTION_KEY = 'Ares'` (`js/core/utils.js`) — XOR key for `.dat` exports. Duplicated in the standalone editors; ZIP password `AresAres123` is derived from the same word (`DATABASE_ZIP_KEY_HEX_PARTS` in `features/database.js`). Grep for `'Ares'` and hex `41 72 65 73` before rotating; update `Zip PW Databases.txt` and `TERMINAL_COMMANDS_PASSWORDS_GUIDE.txt` in lockstep.
-- Access passwords: admin in `core/state.js` (`ADMIN_PASSWORD`, base64-wrapped), elevated `ELEVATED_PASSWORD`. BRE site connect codes in `features/sites.js` / `sites/manifest.json`.
+- Access passwords in `core/state.js`: admin (`ADMIN_PASSWORD`, base64-wrapped, case-sensitive), management (`MANAGEMENT_PASSWORD`, ex-elevated), restricted (`RESTRICTED_PASSWORD`), employee (`EMPLOYEE_PASSWORD`) — all but admin case-insensitive. The terminal boots at Public (rank 0); commands default to `requiredAccess: public`. BRE site connect codes in `features/sites.js` / `sites/manifest.json`.
 
 ---
 

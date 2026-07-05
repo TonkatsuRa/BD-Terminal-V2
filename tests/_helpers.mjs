@@ -20,54 +20,24 @@ export function listDatabaseFiles() {
         .map(f => path.join(dir, f));
 }
 
-function readStudioScript() {
-    const html = fs.readFileSync(path.join(REPO_ROOT, 'database-studio.html'), 'utf8');
-    const match = html.match(/<script>([\s\S]+?)<\/script>/);
-    if (!match) throw new Error('Could not find <script> block in database-studio.html');
-    return match[1];
-}
-
-function grabFunction(source, name) {
-    const re = new RegExp(`function ${name}\\b[\\s\\S]*?\\n\\}\\n`, 'm');
-    const m = source.match(re);
-    if (!m) throw new Error(`Could not find function ${name}`);
-    return m[0];
-}
-
-function grabConst(source, name) {
-    const multi = new RegExp(`const ${name}\\s*=\\s*Object\\.freeze\\(\\[[\\s\\S]*?\\]\\);`, 'm');
-    const m1 = source.match(multi);
-    if (m1) return m1[0];
-    const single = new RegExp(`const ${name}\\s*=\\s*[^;\\n]+;?`, 'm');
-    const m2 = source.match(single);
-    if (m2) return m2[0];
-    throw new Error(`Could not find const ${name}`);
-}
-
 /**
- * Load named functions/consts from database-studio.html's inline script into
- * a sandbox object.
+ * Load the Database Studio's canonical parser/serializer block.
+ *
+ * The rewritten studio inlines a verbatim copy of the runtime parser inside
+ * a script tag with id "studio-canonical-parser" and ends that block with a
+ * CommonJS export hook, so tests can run the exact code the editor ships.
  */
-export function loadFromStudio(names) {
-    const src = readStudioScript();
-    const wantList = Array.isArray(names) ? names : [names];
-    const pieces = [];
-    const exposes = [];
-    for (const n of wantList) {
-        let chunk;
-        try { chunk = grabFunction(src, n); }
-        catch { chunk = grabConst(src, n); }
-        pieces.push(chunk);
-        exposes.push(`__out.${n} = ${n};`);
-    }
-    const wrapped = `
-        const __out = {};
-        ${pieces.join('\n')}
-        ${exposes.join('\n')}
-        __out;
-    `;
-    // eslint-disable-next-line no-eval
-    return (0, eval)(wrapped);
+export function loadFromStudio() {
+    const html = fs.readFileSync(path.join(REPO_ROOT, 'database-studio.html'), 'utf8');
+    const marker = '<script id="studio-canonical-parser">';
+    const start = html.indexOf(marker);
+    if (start < 0) throw new Error('Could not find the studio-canonical-parser block in database-studio.html');
+    const end = html.indexOf('</' + 'script>', start);
+    const source = html.slice(start + marker.length, end);
+    const module = { exports: {} };
+    // eslint-disable-next-line no-new-func
+    new Function('module', 'exports', source)(module, module.exports);
+    return module.exports;
 }
 
 /** Tiny assertion helper: tick per pass, cross + diff per failure. */

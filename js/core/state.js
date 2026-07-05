@@ -6,28 +6,40 @@
 import { getById } from './dom.js';
 import { motion, safeModeActive, setSafeModeFlag } from './effects.js';
 
+// Five clearance tiers (rank order): public 0 · employee 1 · restricted 2 ·
+// management 3 · admin 4. The terminal itself starts at Employee; "public"
+// exists as an ENTRY marking (readable by anyone who mounted the database).
 export const ACCESS_LEVELS = Object.freeze({
+    public: 'public',
     employee: 'employee',
-    elevated: 'elevated',
+    restricted: 'restricted',
+    management: 'management',
     admin: 'admin'
 });
 
-const ACCESS_RANKS = { employee: 0, elevated: 1, admin: 2 };
+const ACCESS_RANKS = { public: 0, employee: 1, restricted: 2, management: 3, admin: 4 };
 
 const CLEARANCE_LABELS = {
+    public: 'Public',
     employee: 'Employee',
-    elevated: 'Elevated',
-    admin: 'Admin'
+    restricted: 'Restricted',
+    management: 'Management',
+    admin: 'Administrator'
 };
 
 export const ADMIN_PASSWORD = atob('YXBvY2FseXBzZQ==');
-export const ELEVATED_PASSWORD = 'Shareholdervalue';
+// Legacy "elevated" password now grants Management (rank 3).
+export const MANAGEMENT_PASSWORD = 'Shareholdervalue';
+// Restricted (rank 2) clearance password.
+export const RESTRICTED_PASSWORD = 'profitmargin';
+// Employee (rank 1) clearance password — the terminal now boots at Public.
+export const EMPLOYEE_PASSWORD = 'ares123';
 
 /** The single app-state record. Mutate only through setAppState(). */
 export const AppState = {
-    accessLevel: ACCESS_LEVELS.employee,
+    accessLevel: ACCESS_LEVELS.public,
     adminMode: false,
-    clearanceLevel: CLEARANCE_LABELS.employee,
+    clearanceLevel: CLEARANCE_LABELS.public,
     soundEnabled: true,
     networkOnline: false,
     databaseLoaded: false,
@@ -67,7 +79,10 @@ export function normalizeOverlayName(name) {
 export function normalizeAccessLevel(level) {
     const value = String(level || '').trim().toLowerCase();
     if (['admin', 'administrator', 'omega-admin', 'omega_admin'].includes(value)) return ACCESS_LEVELS.admin;
-    if (['elevated', 'shareholder', 'shareholdervalue', 'restricted'].includes(value)) return ACCESS_LEVELS.elevated;
+    // legacy "elevated" (and its password aliases) map to Management
+    if (['management', 'manager', 'elevated', 'shareholder', 'shareholdervalue'].includes(value)) return ACCESS_LEVELS.management;
+    if (value === 'restricted') return ACCESS_LEVELS.restricted;
+    if (['public', 'everyone', 'open'].includes(value)) return ACCESS_LEVELS.public;
     return ACCESS_LEVELS.employee;
 }
 
@@ -86,7 +101,9 @@ export function accessLevelLabel(level = AppState.accessLevel) {
 export function accessLevelClass(level = AppState.accessLevel) {
     const normalized = normalizeAccessLevel(level);
     if (normalized === ACCESS_LEVELS.admin) return 't-red';
-    if (normalized === ACCESS_LEVELS.elevated) return 't-amber';
+    if (normalized === ACCESS_LEVELS.management) return 't-magenta';
+    if (normalized === ACCESS_LEVELS.restricted) return 't-amber';
+    if (normalized === ACCESS_LEVELS.public) return 't-green';
     return 't-cyan';
 }
 
@@ -94,8 +111,8 @@ export function accessLevelClass(level = AppState.accessLevel) {
 export const MENU_ACCESS_REQUIREMENTS = {
     loadStatus: ACCESS_LEVELS.admin,
     list: ACCESS_LEVELS.admin,
-    fsearch: ACCESS_LEVELS.elevated,
-    logout: ACCESS_LEVELS.elevated
+    fsearch: ACCESS_LEVELS.management,
+    logout: ACCESS_LEVELS.restricted
 };
 
 export function menuItemRequiredAccess(item) {
@@ -139,7 +156,7 @@ export function syncAppUi(options = {}) {
     const clearance = getById('clearanceLevel');
     if (clearance) {
         clearance.textContent = AppState.clearanceLevel;
-        clearance.classList.remove('t-cyan', 't-amber', 't-red', 't-magenta');
+        clearance.classList.remove('t-green', 't-cyan', 't-amber', 't-red', 't-magenta');
         clearance.classList.add(accessLevelClass(AppState.accessLevel));
     }
 

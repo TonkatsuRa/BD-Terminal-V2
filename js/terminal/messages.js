@@ -9,14 +9,14 @@ import { contentGet } from '../features/status.js';
 export function printAccessRequired(action, requiredLevel = ACCESS_LEVELS.admin) {
     const required = normalizeAccessLevel(requiredLevel);
     const label = accessLevelLabel(required).toUpperCase();
-    const accessLabel = required === ACCESS_LEVELS.elevated ? 'ELEVATED/ADMIN' : label;
+    const isAdmin = required === ACCESS_LEVELS.admin;
     AudioEngine.errorBuzz();
     clearOutput({ force: true });
     print('');
-    print(`${action}: ${accessLabel} ACCESS REQUIRED`, required === ACCESS_LEVELS.elevated ? 't-amber' : 't-red');
-    print(required === ACCESS_LEVELS.elevated
-        ? 'Use /ACCESS with Elevated or Admin credentials before running this command.'
-        : contentGet('admin.required_hint', 'Use /ACCESS to authenticate before modifying status systems.'), 't-dim');
+    print(`${action}: ${label}+ ACCESS REQUIRED`, isAdmin ? 't-red' : 't-amber');
+    print(isAdmin
+        ? contentGet('admin.required_hint', 'Use /ACCESS to authenticate before modifying status systems.')
+        : `Use /ACCESS with ${accessLevelLabel(required)} (or higher) credentials before running this command.`, 't-dim');
     print('');
 }
 

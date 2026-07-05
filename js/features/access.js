@@ -4,7 +4,7 @@
 import { getById } from '../core/dom.js';
 import { AudioEngine } from '../core/audio.js';
 import {
-    ACCESS_LEVELS, ADMIN_PASSWORD, ELEVATED_PASSWORD,
+    ACCESS_LEVELS, ADMIN_PASSWORD, MANAGEMENT_PASSWORD, RESTRICTED_PASSWORD, EMPLOYEE_PASSWORD,
     hasAccess, setAppState, overlays
 } from '../core/state.js';
 import { print, clearOutput } from '../terminal/output.js';
@@ -59,9 +59,15 @@ export function submitAccessPassword() {
     if (password === ADMIN_PASSWORD) {
         closeAccessDialog();
         grantAdminAccess();
-    } else if (password.trim().toLowerCase() === ELEVATED_PASSWORD.toLowerCase()) {
+    } else if (password.trim().toLowerCase() === MANAGEMENT_PASSWORD.toLowerCase()) {
         closeAccessDialog();
-        grantElevatedAccess();
+        grantManagementAccess();
+    } else if (password.trim().toLowerCase() === RESTRICTED_PASSWORD.toLowerCase()) {
+        closeAccessDialog();
+        grantRestrictedAccess();
+    } else if (password.trim().toLowerCase() === EMPLOYEE_PASSWORD.toLowerCase()) {
+        closeAccessDialog();
+        grantEmployeeAccess();
     } else {
         AudioEngine.errorBuzz();
         error.classList.add('visible');
@@ -75,14 +81,38 @@ export function setAccessLevelState(level, options = {}) {
     setAppState({ accessLevel: level }, options);
 }
 
-function grantElevatedAccess() {
-    setAccessLevelState(ACCESS_LEVELS.elevated);
+function grantEmployeeAccess() {
+    setAccessLevelState(ACCESS_LEVELS.employee);
     AudioEngine.accessGranted();
 
     clearOutput({ force: true });
     print('');
-    print('ELEVATED CLEARANCE GRANTED', 't-amber');
-    print('FSEARCH and Elevated database files are now accessible.', 't-dim');
+    print('EMPLOYEE CLEARANCE GRANTED (LEVEL 1)', 't-cyan');
+    print('Standard ARES employee records are now readable.', 't-dim');
+    print('Restricted, Management, and Administrator material remains sealed.', 't-dim');
+    print('');
+}
+
+function grantRestrictedAccess() {
+    setAccessLevelState(ACCESS_LEVELS.restricted);
+    AudioEngine.accessGranted();
+
+    clearOutput({ force: true });
+    print('');
+    print('RESTRICTED CLEARANCE GRANTED (LEVEL 2)', 't-amber');
+    print('Restricted database entries and level-2 redactions are now readable.', 't-dim');
+    print('Management and Administrator material remains sealed.', 't-dim');
+    print('');
+}
+
+function grantManagementAccess() {
+    setAccessLevelState(ACCESS_LEVELS.management);
+    AudioEngine.accessGranted();
+
+    clearOutput({ force: true });
+    print('');
+    print('MANAGEMENT CLEARANCE GRANTED (LEVEL 3)', 't-magenta');
+    print('FSEARCH, Management entries, and level-3 redactions are now accessible.', 't-dim');
     print('Admin-only status controls remain locked.', 't-dim');
     print('');
 }
@@ -110,13 +140,13 @@ function grantAdminAccess() {
 }
 
 export function logout() {
-    setAccessLevelState(ACCESS_LEVELS.employee);
+    setAccessLevelState(ACCESS_LEVELS.public);
     AudioEngine.errorBuzz();
 
     clearOutput({ force: true });
     print('');
     print(contentGet('admin.logout', 'Administrator session terminated.'), 't-red');
-    print('Clearance reset to Employee.', 't-dim');
+    print('Clearance reset to Public.', 't-dim');
     print('');
 }
 
