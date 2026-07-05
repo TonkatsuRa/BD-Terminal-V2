@@ -73,22 +73,32 @@ export function setMenuItems() {
 }
 
 /**
- * Shrink individual menu labels until they actually fit their column.
- * The DOS bitmap font has unusual glyph metrics, so fixed CSS sizes can't
- * guarantee a fit across every window size / zoom — this measures the real
- * rendered width instead and only steps down labels that overflow.
+ * Shrink individual menu labels (and the header title) until they actually
+ * fit their column. The terminal font has unusual glyph metrics — and falls
+ * back to a wider font when it isn't installed — so fixed CSS sizes can't
+ * guarantee a fit across every machine / window size / zoom. This measures
+ * the real rendered width and only steps down text that overflows.
+ * Runs at init, once the font face has finished loading (widths change on
+ * swap), shortly after boot completes, and on every resize.
  */
 export function fitMenuLabels() {
-    document.querySelectorAll('.menu-item span:not(.icon)').forEach(label => {
-        label.style.fontSize = '';
-        if (!label.clientWidth) return; // hidden or not laid out yet
-        let size = Number.parseFloat(getComputedStyle(label).fontSize) || 13.5;
-        let guard = 14;
-        while (guard-- > 0 && label.scrollWidth > label.clientWidth && size > 8.5) {
+    const fitOne = (el, minSize) => {
+        el.style.fontSize = '';
+        if (!el.clientWidth) return; // hidden or not laid out yet
+        let size = Number.parseFloat(getComputedStyle(el).fontSize) || 13.5;
+        let guard = 30;
+        while (guard-- > 0 && el.scrollWidth > el.clientWidth && size > minSize) {
             size -= 0.5;
-            label.style.fontSize = `${size}px`;
+            el.style.fontSize = `${size}px`;
         }
-    });
+    };
+    document.querySelectorAll('.menu-item span:not(.icon)').forEach(el => fitOne(el, 8.5));
+    document.querySelectorAll('.system-title').forEach(el => fitOne(el, 12));
+}
+// Re-fit whenever the terminal font actually arrives (font-display: swap
+// means the first measurement may have used the fallback font's metrics).
+if (typeof document !== 'undefined' && document.fonts?.ready?.then) {
+    document.fonts.ready.then(() => fitMenuLabels());
 }
 
 export function resetMenuState() {

@@ -60,7 +60,7 @@ import {
     initTerminal, processCommand, executeCliCommand, updateMenuSelection,
     suspendTerminalRuntimeForMap, resumeTerminalRuntimeAfterMap,
     scheduleHologramStart, hologram, setSafeMode, setNetworkOnline,
-    getSelectedMenuIndex, setSelectedMenuIndex, showHome
+    getSelectedMenuIndex, setSelectedMenuIndex, showHome, fitMenuLabels
 } from './features/terminal.js';
 
 /* Plain function/object exposure. Legacy function declarations with the same
@@ -84,6 +84,7 @@ Object.assign(window, {
     AppState, setAppState, ACCESS_LEVELS, normalizeAccessLevel, hasAccess,
     accessLevelLabel, accessLevelClass,
     syncAppStateFromLegacy: options => { syncAppUi(options || { resetSelection: false }); return AppState; },
+    fitMenuLabels,
     // formats
     parseColorSegments, balanceColorTagsAcrossLines, lineHasColorMarkup,
     parseMarkdownDatabase, parseLegacyDatabase, parseStatusProfile, sortStatusIds,

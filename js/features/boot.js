@@ -268,6 +268,9 @@ export function startBootSequence(options = {}) {
         Animator.bootExit(bootScreen, () => {
             bootScreen.classList.add('hidden');
             if (shouldInitTerminal) initTerminal();
+            // Labels can only be measured reliably once the terminal is
+            // actually visible; re-fit after the reveal settles.
+            setTimeout(() => window.fitMenuLabels?.(), 350);
         });
     }
 
@@ -285,6 +288,7 @@ export function startBootSequence(options = {}) {
         bootScreen.classList.add('hidden');
         bootScreen.classList.remove('boot-fading', 'boot-blackout', 'boot-log-mode');
         initTerminal({ restoreSnapshot, restoredFrom });
+        setTimeout(() => window.fitMenuLabels?.(), 350);
     }
 
     function handleBootSkip(e) {
