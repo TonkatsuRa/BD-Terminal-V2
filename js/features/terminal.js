@@ -82,12 +82,21 @@ export function setMenuItems() {
  * swap), shortly after boot completes, and on every resize.
  */
 export function fitMenuLabels() {
+    // Sub-pixel text measurement: scrollWidth is integer-rounded and can
+    // report "fits" while the ellipsis is already showing. A Range around
+    // the text node returns the true fractional advance width.
+    const textWidth = el => {
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        return range.getBoundingClientRect().width;
+    };
     const fitOne = (el, minSize) => {
         el.style.fontSize = '';
-        if (!el.clientWidth) return; // hidden or not laid out yet
+        const box = el.getBoundingClientRect().width;
+        if (!box) return; // hidden or not laid out yet
         let size = Number.parseFloat(getComputedStyle(el).fontSize) || 13.5;
         let guard = 30;
-        while (guard-- > 0 && el.scrollWidth > el.clientWidth && size > minSize) {
+        while (guard-- > 0 && textWidth(el) > el.getBoundingClientRect().width - 0.5 && size > minSize) {
             size -= 0.5;
             el.style.fontSize = `${size}px`;
         }
@@ -95,10 +104,18 @@ export function fitMenuLabels() {
     document.querySelectorAll('.menu-item span:not(.icon)').forEach(el => fitOne(el, 8.5));
     document.querySelectorAll('.system-title').forEach(el => fitOne(el, 12));
 }
-// Re-fit whenever the terminal font actually arrives (font-display: swap
-// means the first measurement may have used the fallback font's metrics).
-if (typeof document !== 'undefined' && document.fonts?.ready?.then) {
-    document.fonts.ready.then(() => fitMenuLabels());
+// Fonts load lazily (local() sources activate on first use, after
+// document.fonts.ready may already have resolved), and every swap changes
+// glyph widths — so re-fit on ready, on every completed font load, and on a
+// few staggered timers as a catch-all.
+if (typeof document !== 'undefined' && document.fonts) {
+    document.fonts.ready?.then?.(() => fitMenuLabels());
+    document.fonts.addEventListener?.('loadingdone', () => fitMenuLabels());
+}
+if (typeof window !== 'undefined') {
+    [800, 2000, 4000].forEach(ms => setTimeout(() => {
+        if (document.body?.classList.contains('terminal-ready')) fitMenuLabels();
+    }, ms));
 }
 
 export function resetMenuState() {
