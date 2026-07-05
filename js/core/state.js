@@ -160,6 +160,25 @@ export function syncAppUi(options = {}) {
         clearance.classList.add(accessLevelClass(AppState.accessLevel));
     }
 
+    // Header-bar clearance chip (CLR …) mirrors the same state.
+    const chipLevel = getById('clearanceChipLevel');
+    const chipDot = getById('clearanceChipDot');
+    if (chipLevel) {
+        chipLevel.textContent = AppState.clearanceLevel.toUpperCase();
+        chipLevel.classList.remove('t-green', 't-cyan', 't-amber', 't-red', 't-magenta');
+        chipLevel.classList.add(accessLevelClass(AppState.accessLevel));
+    }
+    if (chipDot) {
+        chipDot.classList.remove('cyan', 'warn', 'magenta', 'err');
+        const dotClass = {
+            [ACCESS_LEVELS.employee]: 'cyan',
+            [ACCESS_LEVELS.restricted]: 'warn',
+            [ACCESS_LEVELS.management]: 'magenta',
+            [ACCESS_LEVELS.admin]: 'err'
+        }[AppState.accessLevel];
+        if (dotClass) chipDot.classList.add(dotClass);
+    }
+
     const badge = getById('adminBadge');
     if (badge) badge.classList.toggle('active', AppState.adminMode);
 

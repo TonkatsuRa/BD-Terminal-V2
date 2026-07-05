@@ -105,6 +105,10 @@ body.effects-low .glow {
 .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--phosphor); box-shadow: 0 0 4px var(--phosphor); }
 .status-dot.warn { background: var(--amber); box-shadow: 0 0 4px var(--amber); }
 .status-dot.err { background: var(--red); box-shadow: 0 0 4px var(--red); }
+.status-dot.cyan { background: var(--cyan); box-shadow: 0 0 4px var(--cyan); }
+.status-dot.magenta { background: var(--magenta); box-shadow: 0 0 4px var(--magenta); }
+#clearanceChip { opacity: 1; }
+#clearanceChip span { letter-spacing: 1px; }
 
 /* ===== HOLOGRAM PANEL ===== */
 .hologram-panel {
