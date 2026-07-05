@@ -1,5 +1,7 @@
 # Black Desert Research Terminal (V2)
 
+https\\:blackdeser.duckdns.org
+
 An interactive retro sci-fi command terminal for the Black Desert / ARES Macrotechnology setting. Static web app: no build pipeline, no bundler, no backend. This is the **V2 rebuild** — same design and UI as the original, with the JavaScript rewritten as clean ES modules.
 
 The previous codebase is preserved in `Black Desert Terminal _old/` for reference.
