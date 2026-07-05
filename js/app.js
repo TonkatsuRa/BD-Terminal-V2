@@ -24,7 +24,7 @@ import { handleStatusFileSelect } from './features/status-load.js';
 import { closeAccessDialog, submitAccessPassword } from './features/access.js';
 import { Animator, startBootSequence } from './features/boot.js';
 import {
-    registerTerminalCommands, setMenuItems, scheduleHologramStart, hologram
+    registerTerminalCommands, setMenuItems, scheduleHologramStart, hologram, fitMenuLabels
 } from './features/terminal.js';
 import { getConnectedSiteDebugSnapshot } from './features/sites.js';
 
@@ -119,6 +119,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!hologram.started && document.body.classList.contains('terminal-ready')) {
                 scheduleHologramStart(200);
             }
+            fitMenuLabels();
             if (overlays.facilityActive) window.renderFacilityStatus?.(performance.now());
         });
     });

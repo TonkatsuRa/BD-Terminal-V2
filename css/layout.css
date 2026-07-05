@@ -194,7 +194,8 @@ body.effects-low .glow {
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 9px;
+    justify-content: flex-start;
+    gap: 7px;
     position: relative;
     /* Capped below --font-size-base: the DOS bitmap font has square glyphs,
        so 16px labels overflow the fixed-width panel. 13.5px keeps the longest
@@ -250,13 +251,14 @@ body.effects-low .glow {
 }
 
 .menu-item .icon {
-    width: 18px;
+    width: 16px;
     text-align: center;
     color: var(--cyan);
     flex-shrink: 0;
 }
 
 .menu-item span:not(.icon) {
+    flex: 1;
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;

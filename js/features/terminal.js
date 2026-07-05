@@ -72,6 +72,25 @@ export function setMenuItems() {
     menuItems = Array.from(document.querySelectorAll('.menu-item'));
 }
 
+/**
+ * Shrink individual menu labels until they actually fit their column.
+ * The DOS bitmap font has unusual glyph metrics, so fixed CSS sizes can't
+ * guarantee a fit across every window size / zoom — this measures the real
+ * rendered width instead and only steps down labels that overflow.
+ */
+export function fitMenuLabels() {
+    document.querySelectorAll('.menu-item span:not(.icon)').forEach(label => {
+        label.style.fontSize = '';
+        if (!label.clientWidth) return; // hidden or not laid out yet
+        let size = Number.parseFloat(getComputedStyle(label).fontSize) || 13.5;
+        let guard = 14;
+        while (guard-- > 0 && label.scrollWidth > label.clientWidth && size > 8.5) {
+            size -= 0.5;
+            label.style.fontSize = `${size}px`;
+        }
+    });
+}
+
 export function resetMenuState() {
     selectedMenuIndex = 0;
     renderedMenuIndex = -1;
@@ -1118,6 +1137,7 @@ export function initTerminal(options = {}) {
     };
 
     safeCall('setSystemStatusVisual', () => setSystemStatusVisual(true));
+    safeCall('fitMenuLabels', () => fitMenuLabels());
     safeCall('clearOutput', () => clearOutput({ force: true }));
     let restored = false;
     safeCall('restoreSnapshot', () => {
