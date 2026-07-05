@@ -1,11 +1,13 @@
 /* ===== RESPONSIVE ===== */
 @media (max-width: 800px) {
-    .menu-panel { width: 200px; }
+    /* Wide DOS glyphs: 232px is the minimum that fits /LOAD DATABASE at 11px. */
+    .menu-panel { width: 232px; }
+    .menu-item { padding: 0 10px; gap: 8px; font-size: 11px; }
     .header-info { display: none; }
 }
 @media (max-width: 600px) {
-    .menu-panel { width: 160px; }
-    .menu-item { padding: 0 10px; font-size: var(--font-size-small); }
+    .menu-panel { width: 176px; }
+    .menu-item { padding: 0 8px; font-size: 10px; }
 }
 @media (max-width: 700px) {
     .screen-content { padding: 8px; }
