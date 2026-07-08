@@ -2738,8 +2738,34 @@ function startCasinoGame() {
         '.orc-title { color: #ff3333; font-size: 16px; margin-bottom: 4px; }' +
         '.orc-mood { font-size: 11px; margin-bottom: 6px; letter-spacing: 2px; height: 14px; }' +
         '.orc-mood.smug { color: #20c20e; } .orc-mood.annoyed { color: #ffb000; } .orc-mood.sweating { color: #ff6633; } .orc-mood.panic { color: #ff3333; animation: jackpotPulse 0.5s infinite; }' +
-        '.orc-portrait { white-space: pre; font-size: 10px; line-height: 1.0; color: #20c20e; margin-bottom: 10px; }' +
-        '.orc-portrait.sweating { color: #ff6633; } .orc-portrait.panic { color: #ff3333; }' +
+        '.orc-stage { position: relative; width: 280px; height: 216px; box-sizing: border-box; border: 2px solid #20c20e; background: #000; overflow: hidden; margin-bottom: 10px; box-shadow: 0 0 18px rgba(32,194,14,0.25), inset 0 0 24px rgba(0,0,0,0.6); }' +
+        '.orc-img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 12%; display: block; transform-origin: 50% 90%; animation: orcBreathe 4.2s ease-in-out infinite; filter: saturate(0.95) contrast(1.05); }' +
+        '@keyframes orcBreathe { 0%, 100% { transform: scale(1) translateY(0); } 50% { transform: scale(1.02) translateY(-2px); } }' +
+        '.orc-scan { position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(0,0,0,0.28) 0 2px, transparent 2px 4px); mix-blend-mode: multiply; }' +
+        '.orc-roll { position: absolute; left: 0; right: 0; height: 34px; top: -40px; pointer-events: none; background: linear-gradient(180deg, transparent, rgba(120,255,160,0.10), transparent); animation: orcRoll 5.5s linear infinite; }' +
+        '@keyframes orcRoll { from { top: -40px; } to { top: 216px; } }' +
+        '.orc-tint { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 50% 30%, transparent 45%, rgba(0,10,0,0.55) 100%); }' +
+        '.orc-stage.mood-annoyed .orc-img { filter: saturate(1.15) contrast(1.08) sepia(0.15); animation-duration: 3.2s; }' +
+        '.orc-stage.mood-sweating .orc-img { filter: saturate(1.3) contrast(1.12) hue-rotate(-14deg) brightness(1.05); animation-duration: 2.2s; }' +
+        '.orc-stage.mood-sweating { animation: orcJitter 0.6s linear infinite; }' +
+        '.orc-stage.mood-panic .orc-img { filter: saturate(1.6) contrast(1.2) hue-rotate(-32deg) brightness(1.12); animation-duration: 1.4s; }' +
+        '.orc-stage.mood-panic { animation: orcJitter 0.22s linear infinite; border-color: #ff3333; box-shadow: 0 0 22px rgba(255,51,51,0.4); }' +
+        '.orc-stage.mood-panic .orc-roll { animation-duration: 1.6s; background: linear-gradient(180deg, transparent, rgba(255,80,80,0.14), transparent); }' +
+        '@keyframes orcJitter { 0%,100% { transform: translate(0,0); } 25% { transform: translate(1px,-1px); } 50% { transform: translate(-1px,1px); } 75% { transform: translate(1px,1px); } }' +
+        '.orc-stage.talking .orc-img { animation: orcTalk 0.22s ease-in-out infinite alternate; }' +
+        '@keyframes orcTalk { from { transform: scale(1.015) translateY(-1px); filter: brightness(1.1) saturate(1.1); } to { transform: scale(1) translateY(1px); } }' +
+        '.orc-stage.glitching .orc-img { animation: orcGlitch 0.24s steps(2) 1; }' +
+        '@keyframes orcGlitch { 0% { transform: translateX(3px) skewX(2deg); filter: hue-rotate(60deg) saturate(2); } 34% { transform: translateX(-4px); filter: invert(0.15) hue-rotate(-40deg); } 67% { transform: translateX(2px) skewX(-1.5deg); filter: saturate(2.2) brightness(1.3); } 100% { transform: none; } }' +
+        '.orc-stage.cheer { animation: orcCheer 0.5s ease-out 1; }' +
+        '@keyframes orcCheer { 0% { transform: translateY(0); } 35% { transform: translateY(-7px) scale(1.02); } 70% { transform: translateY(2px); } 100% { transform: none; } }' +
+        '.orc-stage.hit { animation: casinoShake 0.45s; }' +
+        '.orc-stage.hit::after { content: ""; position: absolute; inset: 0; background: rgba(255,51,51,0.22); animation: orcHitFade 0.6s forwards; pointer-events: none; }' +
+        '@keyframes orcHitFade { to { opacity: 0; } }' +
+        '.orc-portrait { white-space: pre; font-size: 10px; line-height: 1.0; color: #20c20e; display: none; position: absolute; inset: 0; align-items: center; justify-content: center; background: #000; }' +
+        '.orc-stage.ascii-fallback .orc-portrait { display: flex; }' +
+        '.orc-stage.ascii-fallback .orc-img { display: none; }' +
+        '.orc-stage.ascii-fallback.mood-sweating .orc-portrait { color: #ff6633; }' +
+        '.orc-stage.ascii-fallback.mood-panic .orc-portrait { color: #ff3333; }' +
         '.speech-bubble { background: rgba(0, 30, 0, 0.8); border: 2px solid #ff3333; border-radius: 10px; padding: 10px; width: 280px; box-sizing: border-box; position: relative; margin-top: 4px; }' +
         '.speech-bubble::before { content: ""; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); border-left: 10px solid transparent; border-right: 10px solid transparent; border-bottom: 10px solid #ff3333; }' +
         '.speech-text { color: #ff3333; font-size: 12px; text-align: center; height: 74px; overflow: hidden; }' +
@@ -2792,7 +2818,11 @@ function startCasinoGame() {
         '<div class="orc-container">' +
         '<div class="orc-title">◆ DER FETTE ◆</div>' +
         '<div class="orc-mood smug" id="orcMood">SMUG</div>' +
-        '<div class="orc-portrait" id="orcPortrait"></div>' +
+        '<div class="orc-stage mood-smug" id="orcStage">' +
+        '<img class="orc-img" id="orcImg" src="assets/casino/der-fette.jpg" alt="Der Fette, orc casino boss">' +
+        '<div class="orc-scan"></div><div class="orc-roll"></div><div class="orc-tint"></div>' +
+        '<pre class="orc-portrait" id="orcPortrait"></pre>' +
+        '</div>' +
         '<div class="speech-bubble"><div class="speech-text" id="orcSpeech">Five reels now, chummer! Five times the ways to lose! Step right up!</div></div>' +
         '<div class="casino-stats" id="casinoStats"></div>' +
         '</div>' +
@@ -3084,12 +3114,37 @@ function startCasinoGame() {
     ];
 
     var orcPortrait = document.getElementById('orcPortrait');
+    var orcStage = document.getElementById('orcStage');
+    var orcImg = document.getElementById('orcImg');
+    var asciiFallback = false;
+    orcImg.addEventListener('error', function () {
+        asciiFallback = true;
+        orcStage.classList.add('ascii-fallback');
+    });
     var orcFrame = 0;
+    var talkTimeout = null;
+    // Ticker: cycles ASCII frames in fallback mode; otherwise fires the
+    // occasional CRT glitch burst so the portrait never sits still.
     var orcTimer = setInterval(function () {
-        var frames = moodFrames();
-        orcFrame = (orcFrame + 1) % frames.length;
-        if (orcPortrait) orcPortrait.textContent = frames[orcFrame];
+        if (asciiFallback) {
+            var frames = moodFrames();
+            orcFrame = (orcFrame + 1) % frames.length;
+            if (orcPortrait) orcPortrait.textContent = frames[orcFrame];
+            return;
+        }
+        var glitchChance = mood() === 'panic' ? 0.22 : mood() === 'sweating' ? 0.12 : 0.05;
+        if (Math.random() < glitchChance && orcStage) {
+            orcStage.classList.add('glitching');
+            setTimeout(function () { orcStage.classList.remove('glitching'); }, 260);
+        }
     }, 450);
+    function orcReact(kind) {
+        if (!orcStage) return;
+        orcStage.classList.remove('cheer', 'hit');
+        void orcStage.offsetWidth; // restart the animation
+        orcStage.classList.add(kind);
+        setTimeout(function () { orcStage.classList.remove(kind); }, 650);
+    }
 
     for (var si = 0; si < REEL_COUNT; si++) {
         lastSymbols[si] = randomSymbol();
@@ -3134,7 +3189,14 @@ function startCasinoGame() {
         return orcFramesBase;
     }
     function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
-    function say(msg) { document.getElementById('orcSpeech').textContent = msg; }
+    function say(msg) {
+        document.getElementById('orcSpeech').textContent = msg;
+        if (orcStage && !asciiFallback) {
+            orcStage.classList.add('talking');
+            if (talkTimeout) clearTimeout(talkTimeout);
+            talkTimeout = setTimeout(function () { orcStage.classList.remove('talking'); }, 1000);
+        }
+    }
     function mockLine() {
         var m = mood();
         if (m === 'panic') return pick(panicLines);
@@ -3153,7 +3215,10 @@ function startCasinoGame() {
         var m = mood();
         moodEl.textContent = { smug: 'SMUG', annoyed: 'ANNOYED', sweating: 'SWEATING', panic: 'PANICKING' }[m];
         moodEl.className = 'orc-mood ' + m;
-        orcPortrait.className = 'orc-portrait' + (m === 'sweating' ? ' sweating' : m === 'panic' ? ' panic' : '');
+        if (orcStage) {
+            orcStage.classList.remove('mood-smug', 'mood-annoyed', 'mood-sweating', 'mood-panic');
+            orcStage.classList.add('mood-' + m);
+        }
         var heatLine = document.getElementById('heatLine');
         if (heat >= 5) heatLine.textContent = '▲▲▲ HEAT ×2 — wins doubled! ▲▲▲';
         else if (heat >= 3) heatLine.textContent = '▲▲ HEAT ×1.5 — streak bonus live ▲▲';
@@ -3306,6 +3371,7 @@ function startCasinoGame() {
             if (winAmount >= bet * 10) {
                 overlay.classList.add('shake');
                 setTimeout(function () { overlay.classList.remove('shake'); }, 450);
+                orcReact('hit');
             }
             if (bestN >= 3 || dragons >= 3) {
                 reels.forEach(function (rl, idx) {
@@ -3318,6 +3384,7 @@ function startCasinoGame() {
         } else {
             heat = 0;
             loseThud();
+            if (Math.random() < 0.3) orcReact('cheer');
         }
 
         holds = [false, false, false, false, false];
