@@ -2678,92 +2678,170 @@ function initHologram() {
 // CASINO GAME - DER FETTE
 // ========================================
 function startCasinoGame() {
+    if (document.getElementById('casinoOverlay')) return;
     var overlay = document.createElement('div');
     overlay.id = 'casinoOverlay';
     overlay.innerHTML = '<style>' +
-        '#casinoOverlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #0a0a0a; z-index: 500; display: flex; font-family: var(--terminal-font); color: #20c20e; }' +
-        '.casino-left { flex: 2; display: flex; flex-direction: column; padding: 20px; border-right: 2px solid #20c20e; }' +
-        '.casino-right { flex: 1; display: flex; flex-direction: column; padding: 20px; align-items: center; }' +
-        '.casino-title { text-align: center; font-size: 28px; color: #ffb000; text-shadow: 0 0 10px #ffb000; margin-bottom: 10px; }' +
-        '.casino-subtitle { text-align: center; font-size: 14px; color: #666; margin-bottom: 20px; }' +
-        '.slot-machine { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }' +
-        '.slot-frame { border: 3px solid #ffb000; padding: 20px; background: rgba(0, 20, 0, 0.5); box-shadow: 0 0 30px rgba(255, 176, 0, 0.3), inset 0 0 50px rgba(0,0,0,0.5); }' +
-        '.slot-reels { display: flex; gap: 10px; margin-bottom: 20px; }' +
-        '.slot-reel { width: 100px; height: 180px; border: 2px solid #20c20e; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 14px; overflow: hidden; position: relative; }' +
-        '.reel-symbol { white-space: pre; line-height: 1.1; text-align: center; padding: 5px; }' +
-        '.slot-info { display: flex; justify-content: space-between; width: 100%; margin-bottom: 15px; font-size: 18px; }' +
+        '#casinoOverlay { position: fixed; inset: 0; background: #0a0a0a; z-index: 500; display: flex; font-family: var(--terminal-font); color: #20c20e; }' +
+        '#casinoOverlay.shake { animation: casinoShake 0.4s; }' +
+        '@keyframes casinoShake { 0%,100% { transform: none; } 20% { transform: translate(-6px,3px); } 40% { transform: translate(5px,-4px); } 60% { transform: translate(-4px,-2px); } 80% { transform: translate(3px,4px); } }' +
+        '.casino-left { flex: 2; display: flex; flex-direction: column; padding: 18px; border-right: 2px solid #20c20e; min-width: 0; }' +
+        '.casino-right { flex: 1; display: flex; flex-direction: column; padding: 18px; align-items: center; min-width: 0; }' +
+        '.casino-title { text-align: center; font-size: 26px; color: #ffb000; text-shadow: 0 0 10px #ffb000; }' +
+        '.casino-subtitle { text-align: center; font-size: 13px; color: #666; margin: 4px 0 10px; }' +
+        '.slot-machine { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 0; }' +
+        '.slot-frame { border: 3px solid #ffb000; padding: 16px 20px; background: rgba(0, 20, 0, 0.5); box-shadow: 0 0 30px rgba(255, 176, 0, 0.3), inset 0 0 50px rgba(0,0,0,0.5); }' +
+        '.slot-info { display: flex; justify-content: space-between; gap: 18px; width: 100%; margin-bottom: 10px; font-size: 16px; }' +
         '.credits { color: #00d4aa; } .bet { color: #ffb000; }' +
-        '.win-display { text-align: center; font-size: 24px; color: #ff3333; height: 30px; text-shadow: 0 0 10px #ff3333; }' +
-        '.slot-buttons { display: flex; gap: 10px; margin-top: 15px; }' +
-        '.slot-btn { padding: 15px 30px; font-family: var(--terminal-font); font-size: 18px; border: 2px solid; background: rgba(0, 30, 0, 0.8); cursor: pointer; transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s; }' +
+        '.bank-line { text-align: center; font-size: 17px; color: #ff3333; margin-bottom: 8px; }' +
+        '.bank-bar { height: 8px; border: 1px solid #ff3333; margin: 0 0 12px; }' +
+        '.bank-fill { height: 100%; background: #ff3333; box-shadow: 0 0 8px #ff3333; transition: width 0.5s; }' +
+        '.slot-reels { display: flex; gap: 10px; margin-bottom: 6px; }' +
+        '.reel-wrap { display: flex; flex-direction: column; align-items: center; gap: 5px; }' +
+        '.slot-reel { width: 104px; height: 170px; border: 2px solid #20c20e; background: #000; display: flex; align-items: center; justify-content: center; font-size: 13px; overflow: hidden; }' +
+        '.slot-reel.held { border-color: #00d4aa; box-shadow: 0 0 14px #00d4aa; }' +
+        '.slot-reel.hot { border-color: #ff3333; box-shadow: 0 0 18px #ff3333; animation: hotReel 0.25s ease-in-out infinite; }' +
+        '@keyframes hotReel { 0%,100% { border-color: #ff3333; } 50% { border-color: #ffb000; } }' +
+        '.reel-symbol { white-space: pre; line-height: 1.1; text-align: center; }' +
+        '.hold-btn { font-family: var(--terminal-font); font-size: 12px; padding: 3px 10px; background: rgba(0,30,0,0.8); color: #333; border: 1px solid #333; cursor: default; }' +
+        '.hold-btn.offer { color: #00d4aa; border-color: #00d4aa; cursor: pointer; animation: jackpotPulse 0.8s ease-in-out infinite; }' +
+        '.hold-btn.on { color: #000; background: #00d4aa; border-color: #00d4aa; cursor: pointer; }' +
+        '.win-display { text-align: center; font-size: 20px; color: #ffb000; min-height: 28px; text-shadow: 0 0 10px #ffb000; margin-top: 6px; }' +
+        '.heat-line { text-align: center; font-size: 14px; min-height: 20px; color: #ff6633; margin-top: 2px; }' +
+        '.slot-buttons { display: flex; gap: 10px; margin-top: 12px; justify-content: center; }' +
+        '.slot-btn { padding: 12px 22px; font-family: var(--terminal-font); font-size: 16px; border: 2px solid; background: rgba(0, 30, 0, 0.8); cursor: pointer; transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s; }' +
         '.slot-btn:hover:not(:disabled) { transform: scale(1.05); box-shadow: 0 0 15px currentColor; }' +
-        '.slot-btn:disabled { opacity: 0.5; cursor: not-allowed; }' +
+        '.slot-btn:disabled { opacity: 0.4; cursor: not-allowed; }' +
         '.slot-btn.spin { color: #20c20e; border-color: #20c20e; }' +
         '.slot-btn.bet-btn { color: #ffb000; border-color: #ffb000; }' +
         '.slot-btn.exit { color: #ff3333; border-color: #ff3333; }' +
-        '.paytable { margin-top: 20px; font-size: 12px; color: #666; text-align: center; }' +
-        '.paytable-title { color: #ffb000; margin-bottom: 5px; }' +
-        '.jackpot-display { font-size: 20px; color: #ff00ff; text-shadow: 0 0 15px #ff00ff; margin-bottom: 10px; animation: jackpotPulse 1s ease-in-out infinite; }' +
-        '@keyframes jackpotPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }' +
-        '.orc-container { flex: 1; display: flex; flex-direction: column; align-items: center; }' +
-        '.orc-title { color: #ff3333; font-size: 18px; margin-bottom: 10px; }' +
-        '.orc-portrait { white-space: pre; font-size: 10px; line-height: 1.0; color: #20c20e; margin-bottom: 15px; }' +
-        '.speech-bubble { background: rgba(0, 30, 0, 0.8); border: 2px solid #ff3333; border-radius: 10px; padding: 15px; max-width: 280px; position: relative; margin-top: 10px; }' +
+        '.gamble-panel { display: none; margin-top: 12px; border: 2px solid #ff00ff; padding: 10px 16px; text-align: center; background: rgba(30,0,30,0.5); }' +
+        '.gamble-panel.open { display: block; }' +
+        '.gamble-title { color: #ff00ff; font-size: 15px; margin-bottom: 6px; }' +
+        '.gamble-card { font-size: 30px; color: #fff; text-shadow: 0 0 12px #ff00ff; min-height: 38px; }' +
+        '.gamble-actions { font-size: 13px; color: #aaa; margin-top: 6px; }' +
+        '.gamble-actions b { color: #ff00ff; }' +
+        '.paytable { margin-top: 12px; font-size: 11px; color: #666; text-align: center; line-height: 1.5; }' +
+        '.paytable-title { color: #ffb000; margin-bottom: 3px; }' +
+        '.jackpot-display { font-size: 19px; color: #ff00ff; text-shadow: 0 0 15px #ff00ff; margin-bottom: 8px; animation: jackpotPulse 1s ease-in-out infinite; text-align: center; }' +
+        '@keyframes jackpotPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }' +
+        '.orc-container { flex: 1; display: flex; flex-direction: column; align-items: center; min-height: 0; }' +
+        '.orc-title { color: #ff3333; font-size: 17px; margin-bottom: 6px; }' +
+        '.orc-mood { font-size: 12px; margin-bottom: 8px; letter-spacing: 2px; }' +
+        '.orc-mood.smug { color: #20c20e; } .orc-mood.annoyed { color: #ffb000; } .orc-mood.sweating { color: #ff6633; } .orc-mood.panic { color: #ff3333; animation: jackpotPulse 0.5s infinite; }' +
+        '.orc-portrait { white-space: pre; font-size: 10px; line-height: 1.0; color: #20c20e; margin-bottom: 12px; }' +
+        '.orc-portrait.sweating { color: #ff6633; } .orc-portrait.panic { color: #ff3333; }' +
+        '.speech-bubble { background: rgba(0, 30, 0, 0.8); border: 2px solid #ff3333; border-radius: 10px; padding: 12px; max-width: 300px; position: relative; margin-top: 6px; }' +
         '.speech-bubble::before { content: ""; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); border-left: 10px solid transparent; border-right: 10px solid transparent; border-bottom: 10px solid #ff3333; }' +
-        '.speech-text { color: #ff3333; font-size: 14px; text-align: center; min-height: 60px; }' +
-        '.casino-instructions { color: #444; font-size: 12px; text-align: center; margin-top: auto; }' +
+        '.speech-text { color: #ff3333; font-size: 13px; text-align: center; min-height: 64px; }' +
+        '.casino-stats { color: #555; font-size: 11px; text-align: center; margin-top: 8px; }' +
+        '.casino-instructions { color: #444; font-size: 11px; text-align: center; margin-top: auto; line-height: 1.6; }' +
         '.winning { animation: winFlash 0.3s ease-in-out 5; }' +
         '@keyframes winFlash { 0%, 100% { background: rgba(0, 50, 0, 0.5); } 50% { background: rgba(255, 176, 0, 0.3); } }' +
+        '.casino-end { position: absolute; inset: 0; background: rgba(0,0,0,0.92); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10; text-align: center; }' +
+        '.casino-end pre { font-size: 13px; line-height: 1.15; margin-bottom: 16px; }' +
+        '.casino-end.win pre { color: #ffb000; text-shadow: 0 0 14px #ffb000; }' +
+        '.casino-end.lose pre { color: #ff3333; text-shadow: 0 0 14px #ff3333; }' +
+        '.casino-end .end-text { font-size: 15px; color: #ccc; max-width: 520px; margin-bottom: 20px; line-height: 1.5; }' +
         '</style>' +
         '<div class="casino-left">' +
         '<div class="casino-title">★ SHADOWRUN SLOTS ★</div>' +
-        '<div class="casino-subtitle">Der Fette\'s Lucky Machine</div>' +
+        '<div class="casino-subtitle">Der Fette\'s Lucky Machine — clean him out, if you can</div>' +
         '<div class="slot-machine">' +
-        '<div class="jackpot-display">◆ JACKPOT: <span id="jackpotAmount">10000</span>¥ ◆</div>' +
+        '<div class="jackpot-display">◆ JACKPOT: <span id="jackpotAmount">4000</span>¥ ◆</div>' +
         '<div class="slot-frame">' +
-        '<div class="slot-info"><span class="credits">CREDITS: <span id="creditDisplay">1000</span>¥</span><span class="bet">BET: <span id="betDisplay">10</span>¥</span></div>' +
-        '<div class="slot-reels"><div class="slot-reel" id="reel1"><div class="reel-symbol"></div></div><div class="slot-reel" id="reel2"><div class="reel-symbol"></div></div><div class="slot-reel" id="reel3"><div class="reel-symbol"></div></div></div>' +
-        '<div class="win-display" id="winDisplay"></div>' +
-        '<div class="slot-buttons"><button class="slot-btn bet-btn" id="betBtn">BET +10</button><button class="slot-btn spin" id="spinBtn">◆ SPIN ◆</button><button class="slot-btn exit" onclick="closeCasino()">EXIT</button></div>' +
+        '<div class="bank-line">DER FETTE\'S BANK: <span id="bankDisplay">12000</span>¥</div>' +
+        '<div class="bank-bar"><div class="bank-fill" id="bankFill" style="width:100%"></div></div>' +
+        '<div class="slot-info"><span class="credits">CREDITS: <span id="creditDisplay">1000</span>¥</span><span class="bet">BET: <span id="betDisplay">25</span>¥</span></div>' +
+        '<div class="slot-reels">' +
+        '<div class="reel-wrap"><div class="slot-reel" id="reel1"><div class="reel-symbol"></div></div><button class="hold-btn" id="hold1">HOLD [1]</button></div>' +
+        '<div class="reel-wrap"><div class="slot-reel" id="reel2"><div class="reel-symbol"></div></div><button class="hold-btn" id="hold2">HOLD [2]</button></div>' +
+        '<div class="reel-wrap"><div class="slot-reel" id="reel3"><div class="reel-symbol"></div></div><button class="hold-btn" id="hold3">HOLD [3]</button></div>' +
         '</div>' +
-        '<div class="paytable"><div class="paytable-title">═══ PAYOUTS ═══</div><div>DRAGON x3 = JACKPOT! | SKULL x3 = 50x</div><div>GHOST x3 = 25x | GUN x3 = 15x</div><div>STIM x3 = 10x | NUYEN x3 = 8x</div><div>DICE x3 = 5x | Any 2 Match = 2x</div></div>' +
+        '<div class="win-display" id="winDisplay"></div>' +
+        '<div class="heat-line" id="heatLine"></div>' +
+        '<div class="slot-buttons">' +
+        '<button class="slot-btn bet-btn" id="betDownBtn">BET −</button>' +
+        '<button class="slot-btn spin" id="spinBtn">◆ SPIN ◆</button>' +
+        '<button class="slot-btn bet-btn" id="betUpBtn">BET +</button>' +
+        '<button class="slot-btn exit" onclick="closeCasino()">EXIT</button>' +
+        '</div>' +
+        '<div class="gamble-panel" id="gamblePanel">' +
+        '<div class="gamble-title">DER FETTE\'S DOUBLE-OR-NOTHING — POT: <span id="gamblePot">0</span>¥</div>' +
+        '<div class="gamble-card" id="gambleCard">?</div>' +
+        '<div class="gamble-actions" id="gambleActions">Next card <b>[H]</b>igher or <b>[L]</b>ower? — or <b>[C]</b>ollect (ties lose, chummer)</div>' +
+        '</div>' +
+        '</div>' +
+        '<div class="paytable"><div class="paytable-title">═══ PAYOUTS ═══</div>' +
+        '<div>DRAGON ×3 = JACKPOT | SKULL ×3 = 40x | GHOST ×3 = 20x | ARES ×3 = 12x</div>' +
+        '<div>STIM ×3 = 8x | NUYEN ×3 = 6x | DICE ×3 = 4x | CHIP ×3 = 3x</div>' +
+        '<div>DRAGON ×2 = 5x | any other pair = 1.5x | 3 wins in a row = HEAT bonus</div>' +
+        '<div>HOLD offers: lock reels, chase the triple — but the pair pays nothing if you miss</div>' +
+        '</div>' +
         '</div></div>' +
-        '<div class="casino-right"><div class="orc-container"><div class="orc-title">◆ DER FETTE ◆</div><div class="orc-portrait" id="orcPortrait"></div><div class="speech-bubble"><div class="speech-text" id="orcSpeech">Step right up, chummer! Let\'s see what you got...</div></div></div><div class="casino-instructions">SPACE = Spin | +/- = Change Bet | ESC = Exit</div></div>';
+        '<div class="casino-right">' +
+        '<div class="orc-container">' +
+        '<div class="orc-title">◆ DER FETTE ◆</div>' +
+        '<div class="orc-mood smug" id="orcMood">SMUG</div>' +
+        '<div class="orc-portrait" id="orcPortrait"></div>' +
+        '<div class="speech-bubble"><div class="speech-text" id="orcSpeech">Step right up, chummer! Nobody walks out of here richer. NOBODY.</div></div>' +
+        '<div class="casino-stats" id="casinoStats"></div>' +
+        '</div>' +
+        '<div class="casino-instructions">SPACE = Spin | +/− = Bet | 1/2/3 = Hold (when offered)<br>G = Gamble win | H/L = Higher/Lower | C = Collect | ESC = Exit<br>Drain his bank to 0 and the machine is yours.</div>' +
+        '</div>';
     document.body.appendChild(overlay);
-    
-    // Game state
+
+    // ── Game state ──────────────────────────────────────────
     var credits = 1000;
-    var bet = 10;
-    var jackpot = 10000;
+    var bet = 25;
+    var bank = 12000;
+    var BANK_MAX = 12000;
+    var jackpot = 4000;
     var spinning = false;
-    
-    // Symbols with ASCII art
+    var gameOver = false;
+    var heat = 0;                 // consecutive winning spins
+    var holds = [false, false, false];
+    var holdsOffered = false;
+    var lastSymbols = [null, null, null];
+    var pot = 0;                  // uncollected win riding on the gamble panel
+    var gambleCardValue = 0;
+    var gambleSteps = 0;
+    var gambleActive = false;
+    var stats = { spins: 0, biggestWin: 0 };
+    var best = { banksBroken: 0, biggestWin: 0 };
+    try { best = Object.assign(best, JSON.parse(localStorage.getItem('casinoBest') || '{}')); } catch (err) {}
+
+    // ── Symbols ─────────────────────────────────────────────
     var symbols = [
-        { name: 'dragon', weight: 2, art: "  /\\_/\\\n ( o.o )\n  > ^ <\n /|   |\\\n/_|   |_\\\nDRAGON" },
-        { name: 'skull', weight: 4, art: "  ___\n /o o\\\n \\ - /\n  |||\n /|||\\\n SKULL" },
-        { name: 'ghost', weight: 6, art: "  .-.\n (o o)\n | O |\n |   |\n '~~~'\n GHOST" },
-        { name: 'gun', weight: 8, art: "    _\n  _/ |\n |__/|\n    ||\n   _||_\n  ARES" },
-        { name: 'stim', weight: 10, art: "  ___\n |[+]|\n |   |\n |___|\n   |\n STIM" },
-        { name: 'nuyen', weight: 12, art: "  ___\n /   \\\n| ¥¥¥ |\n \\___/\n  |||\n NUYEN" },
-        { name: 'dice', weight: 15, art: " .---.\n/o   |\n|  o |\n|   o/\n'---'\n DICE" },
-        { name: 'chip', weight: 18, art: "  ___\n [|||]\n |CPU|\n [|||]\n  ---\n CHIP" }
+        { name: 'dragon', mult: 0,  weight: 2,  art: "  /\\_/\\\n ( o.o )\n  > ^ <\n /|   |\\\n/_|   |_\\\nDRAGON" },
+        { name: 'skull',  mult: 40, weight: 4,  art: "  ___\n /o o\\\n \\ - /\n  |||\n /|||\\\n SKULL" },
+        { name: 'ghost',  mult: 20, weight: 6,  art: "  .-.\n (o o)\n | O |\n |   |\n '~~~'\n GHOST" },
+        { name: 'gun',    mult: 12, weight: 8,  art: "    _\n  _/ |\n |__/|\n    ||\n   _||_\n  ARES" },
+        { name: 'stim',   mult: 8,  weight: 10, art: "  ___\n |[+]|\n |   |\n |___|\n   |\n STIM" },
+        { name: 'nuyen',  mult: 6,  weight: 12, art: "  ___\n /   \\\n| ¥¥¥ |\n \\___/\n  |||\n NUYEN" },
+        { name: 'dice',   mult: 4,  weight: 15, art: " .---.\n/o   |\n|  o |\n|   o/\n'---'\n DICE" },
+        { name: 'chip',   mult: 3,  weight: 18, art: "  ___\n [|||]\n |CPU|\n [|||]\n  ---\n CHIP" }
     ];
-    
-    // Build weighted array
     var weightedSymbols = [];
-    symbols.forEach(function(s) {
-        for (var i = 0; i < s.weight; i++) weightedSymbols.push(s);
-    });
-    
-    // Orc ASCII portrait frames
-    var orcFrames = [
+    symbols.forEach(function (s) { for (var i = 0; i < s.weight; i++) weightedSymbols.push(s); });
+    function randomSymbol() { return weightedSymbols[Math.floor(Math.random() * weightedSymbols.length)]; }
+
+    // ── Der Fette: portrait, moods, lines ──────────────────
+    var orcFramesBase = [
         "      ,---.\n     /o   o\\\n    |   _   |\n   /| (___) |\\\n  / |       | \\\n |  |~~---~~|  |\n |  | |\\/| |  |\n/___|_|  |_|___\\\n|    BOSS    |\n|   \\\\__//   |\n'----'  '----'",
         "      ,---.\n     /o   o\\\n    |  \\_/  |\n   /| (___) |\\\n  / |       | \\\n |  |~~---~~|  |\n |  | |\\/| |  |\n/___|_|  |_|___\\\n|    BOSS    |\n|   \\\\__//   |\n'----'  '----'",
         "      ,---.\n     /-   o\\\n    |   _   |\n   /| (___) |\\\n  / |       | \\\n |  |~~---~~|  |\n |  | |\\/| |  |\n/___|_|  |_|___\\\n|    BOSS    |\n|   \\\\__//   |\n'----'  '----'"
     ];
-    
-    // 150 Shadowrun-themed insults
-    var insults = [
+    var orcFramesSweat = [
+        "   .  ,---. ,\n     /o   o\\\n    |  ___  |\n   /| (   ) |\\\n  / |  ~~~  | \\\n |  |~~---~~|  |\n .  | |\\/| |  ,\n/___|_|  |_|___\\\n|    BOSS    |\n|   \\\\__//   |\n'----'  '----'",
+        "   ,  ,---. .\n     /O   O\\\n    |  ___  |\n   /| (   ) |\\\n  / |  ~~~  | \\\n |  |~~---~~|  |\n ,  | |\\/| |  .\n/___|_|  |_|___\\\n|    BOSS    |\n|   \\\\__//   |\n'----'  '----'"
+    ];
+    var orcFramesPanic = [
+        "  ., ,---. ,.\n     /O   O\\\n    |  ___  |\n   /| (@@@) |\\\n  / | ~~!~~ | \\\n |  |~~---~~|  |\n., .| |\\/| |. ,.\n/___|_|  |_|___\\\n|    BOSS    |\n|   \\\\__//   |\n'----'  '----'",
+        "  ,. ,---. .,\n     /@   @\\\n    |  ___  |\n   /| (@@@) |\\\n  / | ~~!~~ | \\\n |  |~~---~~|  |\n,. .| |\\/| |. .,\n/___|_|  |_|___\\\n|    BOSS    |\n|   \\\\__//   |\n'----'  '----'"
+    ];
+
+    var INSULTS = [
         "Another day, another sucker loses their nuyen to Der Fette!",
         "You call that luck? I've seen better odds in a toxic spirit's lair!",
         "Keep spinning, chummer. My credstick needs padding!",
@@ -2916,236 +2994,454 @@ function startCasinoGame() {
         "Your luck is an urban legend of failure!",
         "Even tempo addicts have better highs than your wins!"
     ];
-    
-    // Initialize orc
-    var orcPortrait = document.getElementById('orcPortrait');
-    var orcFrame = 0;
-    var orcTimer = null;
-    orcPortrait.textContent = orcFrames[0];
-    
-    // Animate orc
-    orcTimer = setInterval(function() {
-        orcFrame = (orcFrame + 1) % orcFrames.length;
-        if (orcPortrait) orcPortrait.textContent = orcFrames[orcFrame];
-    }, 500);
-    
-    // Initialize reels
+
+    var sweatLines = [
+        "Okay, okay. Beginner's luck. It happens. It HAPPENS.",
+        "You're counting cards, aren't you? You can't count cards on a SLOT MACHINE!",
+        "That machine was calibrated yesterday. CALIBRATED!",
+        "Look, chummer, how about a free drink and we call it a night?",
+        "My accountant is going to hear about this. Loudly.",
+        "You know what? Laugh it up. The house ALWAYS recovers.",
+        "Is it hot in here? It feels hot in here. TURN DOWN THE HEAT!",
+        "I've thrown runners out for less. Prettier ones, too.",
+        "That's... that's coming out of the security budget.",
+        "Quit while you're ahead, omae. I say that as a FRIEND.",
+        "Do you have ANY idea what krill costs these days?!",
+        "The machine's just warming up. It gets MEANER. I swear it does."
+    ];
+    var panicLines = [
+        "STOP. WINNING. That's not a request, that's a BUSINESS PLAN!",
+        "SECURITY! Sec— wait, I fired security to save money. DREK!",
+        "My yacht. My beautiful, unpaid-for yacht...",
+        "You're a technomancer! ADMIT IT! NOBODY is this lucky!",
+        "I'll give you 500¥ right now to walk away. 600! FINAL OFFER!",
+        "This is extortion! This is robbery! This is... LEGAL?! HOW?!",
+        "The pit boss is crying. I'M the pit boss. I'M CRYING.",
+        "Do you take payment plans? Asking for me. For ME!",
+        "I knew I should have rigged this thing HARDER!",
+        "My tusks are sweating. TUSKS DON'T EVEN SWEAT!",
+        "Please. I have a family. Well, a lizard. HE DEPENDS ON ME!"
+    ];
+    var bigWinLines = [
+        "WHAT?! That machine is DEFECTIVE! DEFECTIVE I SAY!",
+        "No no no NO! Do you know how long I saved for that?!",
+        "I felt that one in my credstick. OW.",
+        "That's it, I'm switching to honest work. ...HAHAHA. No.",
+        "Somewhere, an accountant just fainted. MINE."
+    ];
+    var smallWinLines = [
+        "Crumbs. You won CRUMBS. I spill more than that at lunch!",
+        "Enjoy it, chummer. Rent's due eventually.",
+        "A win! Adorable. The machine's just playing with its food.",
+        "Pfft. I make that back every time you blink.",
+        "Small payout, smaller victory. Spin again, sucker."
+    ];
+    var gambleTauntLines = [
+        "Double or nothing? NOW you're speaking my language!",
+        "Hehehe... the card never lies. Except when I want it to.",
+        "Greed! I LOVE it! It's how I got this magnificent body!",
+        "Go on. One more double. What could POSSIBLY go wrong?",
+        "The pot grows... and so does my appetite. HIGHER OR LOWER?!"
+    ];
+    var gambleWinLines = [
+        "LUCKY. CARD. That's all that was!",
+        "Fine! FINE! Take it! The deck's a traitor!",
+        "Who taught you cards?! A dragon?!"
+    ];
+    var gambleLoseLines = [
+        "AHAHAHA! The pot returns to papa! DELICIOUS!",
+        "And THAT is why the house always wins, chummer!",
+        "Ohhh, so close! Actually no, not close at all! HAHA!"
+    ];
+
+    // ── DOM handles ─────────────────────────────────────────
     var reels = [
         document.getElementById('reel1').querySelector('.reel-symbol'),
         document.getElementById('reel2').querySelector('.reel-symbol'),
         document.getElementById('reel3').querySelector('.reel-symbol')
     ];
-    
-    var results = [
-        weightedSymbols[Math.floor(Math.random() * weightedSymbols.length)],
-        weightedSymbols[Math.floor(Math.random() * weightedSymbols.length)],
-        weightedSymbols[Math.floor(Math.random() * weightedSymbols.length)]
-    ];
-    
-    reels.forEach(function(reel, i) {
-        reel.textContent = results[i].art;
-        reel.style.color = '#20c20e';
-    });
-    
+    var holdBtns = [document.getElementById('hold1'), document.getElementById('hold2'), document.getElementById('hold3')];
+    var orcPortrait = document.getElementById('orcPortrait');
+    var orcFrame = 0;
+    var orcTimer = setInterval(function () {
+        var frames = moodFrames();
+        orcFrame = (orcFrame + 1) % frames.length;
+        if (orcPortrait) orcPortrait.textContent = frames[orcFrame];
+    }, 450);
+
+    for (var i = 0; i < 3; i++) {
+        lastSymbols[i] = randomSymbol();
+        reels[i].textContent = lastSymbols[i].art;
+    }
+
+    // ── Audio helpers (AudioEngine oscillator bleeps) ───────
+    function blip(freq, dur, type, gain, delay) {
+        if (!AudioEngine.canPlay()) return;
+        setTimeout(function () {
+            if (!AudioEngine.canPlay()) return;
+            var osc = AudioEngine.ctx.createOscillator();
+            var g = AudioEngine.ctx.createGain();
+            osc.connect(g);
+            g.connect(AudioEngine.destination());
+            osc.frequency.value = freq;
+            osc.type = type || 'square';
+            g.gain.setValueAtTime(gain || 0.06, AudioEngine.ctx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.001, AudioEngine.ctx.currentTime + (dur || 0.06));
+            osc.start();
+            osc.stop(AudioEngine.ctx.currentTime + (dur || 0.06));
+        }, delay || 0);
+    }
+    function winTune(big) {
+        var seq = big ? [262, 330, 392, 523, 659, 784, 1047] : [330, 415, 494, 659];
+        seq.forEach(function (f, i) { blip(f, 0.14, 'sine', 0.09, i * 90); });
+    }
+    function loseThud() { blip(120, 0.2, 'sawtooth', 0.05); blip(80, 0.25, 'sawtooth', 0.05, 120); }
+
+    // ── Mood ────────────────────────────────────────────────
+    function mood() {
+        var ratio = bank / BANK_MAX;
+        if (ratio > 0.85) return 'smug';
+        if (ratio > 0.5) return 'annoyed';
+        if (ratio > 0.2) return 'sweating';
+        return 'panic';
+    }
+    function moodFrames() {
+        var m = mood();
+        if (m === 'sweating') return orcFramesSweat;
+        if (m === 'panic') return orcFramesPanic;
+        return orcFramesBase;
+    }
+    function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+    function say(msg) { document.getElementById('orcSpeech').textContent = msg; }
+    function mockLine() {
+        var m = mood();
+        if (m === 'panic') return pick(panicLines);
+        if (m === 'sweating') return Math.random() < 0.5 ? pick(sweatLines) : pick(INSULTS);
+        return pick(INSULTS);
+    }
+
+    // ── Displays ────────────────────────────────────────────
     function updateDisplays() {
         document.getElementById('creditDisplay').textContent = credits;
         document.getElementById('betDisplay').textContent = bet;
         document.getElementById('jackpotAmount').textContent = jackpot;
+        document.getElementById('bankDisplay').textContent = Math.max(0, bank);
+        document.getElementById('bankFill').style.width = Math.max(0, Math.min(100, (bank / BANK_MAX) * 100)) + '%';
+        var moodEl = document.getElementById('orcMood');
+        var m = mood();
+        moodEl.textContent = { smug: 'SMUG', annoyed: 'ANNOYED', sweating: 'SWEATING', panic: 'PANICKING' }[m];
+        moodEl.className = 'orc-mood ' + m;
+        orcPortrait.className = 'orc-portrait' + (m === 'sweating' ? ' sweating' : m === 'panic' ? ' panic' : '');
+        var heatLine = document.getElementById('heatLine');
+        if (heat >= 5) heatLine.textContent = '▲▲▲ HEAT ×2 — wins doubled! ▲▲▲';
+        else if (heat >= 3) heatLine.textContent = '▲▲ HEAT ×1.5 — streak bonus live ▲▲';
+        else if (heat === 2) heatLine.textContent = '▲ one more win lights the heat ▲';
+        else heatLine.textContent = '';
+        document.getElementById('casinoStats').textContent =
+            'spins: ' + stats.spins + ' | best win: ' + Math.max(stats.biggestWin, best.biggestWin) + '¥ | banks broken: ' + best.banksBroken;
+        holdBtns.forEach(function (btn, idx) {
+            btn.className = 'hold-btn' + (holds[idx] ? ' on' : holdsOffered ? ' offer' : '');
+        });
     }
-    
-    function getInsult() {
-        return insults[Math.floor(Math.random() * insults.length)];
-    }
-    
-    function showOrcMessage(msg) {
-        document.getElementById('orcSpeech').textContent = msg;
-    }
-    
-    async function spin() {
-        if (spinning || credits < bet) {
-            if (credits < bet) {
-                showOrcMessage("HAHAHAHA! You're BROKE! Get out of my casino, you pathetic worm!");
-            }
+
+    // ── Holds ───────────────────────────────────────────────
+    function toggleHold(idx) {
+        if (!holdsOffered || spinning || gambleActive || gameOver) return;
+        if (!holds[idx] && holds.filter(Boolean).length >= 2) {
+            say("Two reels max, chummer! What do you think this is, CHARITY?!");
             return;
         }
-        
-        spinning = true;
-        credits -= bet;
-        jackpot += Math.floor(bet * 0.1);
+        holds[idx] = !holds[idx];
+        blip(holds[idx] ? 660 : 330, 0.07, 'square', 0.05);
         updateDisplays();
-        document.getElementById('winDisplay').textContent = '';
+    }
+    holdBtns.forEach(function (btn, idx) { btn.addEventListener('click', function () { toggleHold(idx); }); });
+
+    // ── Heat ────────────────────────────────────────────────
+    function heatMultiplier() { return heat >= 5 ? 2 : heat >= 3 ? 1.5 : 1; }
+
+    // ── Payout transfer (bank-aware) ────────────────────────
+    function payFromBank(amount) {
+        credits += amount;
+        bank -= amount;
+        stats.biggestWin = Math.max(stats.biggestWin, amount);
+        if (amount > best.biggestWin) { best.biggestWin = amount; saveBest(); }
+        if (bank <= 0) endGame(true);
+    }
+    function saveBest() {
+        try { localStorage.setItem('casinoBest', JSON.stringify(best)); } catch (err) {}
+    }
+
+    // ── Spin ────────────────────────────────────────────────
+    async function spin() {
+        if (spinning || gambleActive || gameOver) return;
+        if (credits < bet) {
+            say("HAHAHAHA! You're BROKE! The door's that way, you pathetic worm!");
+            if (credits < 10) endGame(false);
+            return;
+        }
+
+        spinning = true;
+        stats.spins++;
+        credits -= bet;
+        bank += bet;
+        jackpot += Math.max(1, Math.floor(bet * 0.2));
+        var chasing = holds.some(Boolean);
+        document.getElementById('winDisplay').textContent = chasing ? 'CHASING THE TRIPLE…' : '';
         document.getElementById('spinBtn').disabled = true;
-        
-        // Play spin sound
-        if (AudioEngine.canPlay()) {
-            for (var i = 0; i < 10; i++) {
-                (function(idx) {
-                    setTimeout(function() {
-                        if (!AudioEngine.canPlay()) return;
-                        var osc = AudioEngine.ctx.createOscillator();
-                        var gain = AudioEngine.ctx.createGain();
-                        osc.connect(gain);
-                        gain.connect(AudioEngine.destination());
-                        osc.frequency.value = 100 + Math.random() * 300;
-                        osc.type = 'square';
-                        gain.gain.setValueAtTime(0.05, AudioEngine.ctx.currentTime);
-                        gain.gain.exponentialRampToValueAtTime(0.001, AudioEngine.ctx.currentTime + 0.05);
-                        osc.start();
-                        osc.stop(AudioEngine.ctx.currentTime + 0.05);
-                    }, idx * 50);
-                })(i);
-            }
-        }
-        
-        // Spin animation for each reel
-        var finalResults = [];
+        updateDisplays();
+
+        for (var t = 0; t < 8; t++) blip(100 + Math.random() * 300, 0.05, 'square', 0.04, t * 55);
+
+        var finalResults = [null, null, null];
         for (var r = 0; r < 3; r++) {
-            var reel = reels[r];
-            var spins = 10 + r * 5;
-            
+            if (holds[r]) { finalResults[r] = lastSymbols[r]; continue; }
+
+            // Anticipation: if the first two stopped reels match, the last
+            // free reel spins longer and runs hot.
+            var stopped = finalResults.filter(Boolean);
+            var lastFree = (r === 2) || (r === 1 && holds[2]);
+            var teasing = lastFree && stopped.length === 2 && stopped[0].name === stopped[1].name;
+            var spins = 8 + r * 5 + (teasing ? 14 : 0);
+            if (teasing) {
+                reels[r].parentElement.classList.add('hot');
+                blip(880, 0.3, 'sine', 0.07);
+            }
+
             for (var s = 0; s < spins; s++) {
-                await new Promise(function(resolve) { setTimeout(resolve, 50 + s * 5); });
-                var randomSym = weightedSymbols[Math.floor(Math.random() * weightedSymbols.length)];
-                reel.textContent = randomSym.art;
-                reel.style.color = '#20c20e';
+                await new Promise(function (resolve) { setTimeout(resolve, 45 + s * (teasing ? 7 : 5)); });
+                reels[r].textContent = randomSymbol().art;
             }
-            
-            var finalSym = weightedSymbols[Math.floor(Math.random() * weightedSymbols.length)];
-            finalResults.push(finalSym);
-            reel.textContent = finalSym.art;
-            
-            if (AudioEngine.canPlay()) {
-                var osc = AudioEngine.ctx.createOscillator();
-                var gain = AudioEngine.ctx.createGain();
-                osc.connect(gain);
-                gain.connect(AudioEngine.destination());
-                osc.frequency.value = 150;
-                osc.type = 'sine';
-                gain.gain.setValueAtTime(0.1, AudioEngine.ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, AudioEngine.ctx.currentTime + 0.1);
-                osc.start();
-                osc.stop(AudioEngine.ctx.currentTime + 0.1);
-            }
+
+            finalResults[r] = randomSymbol();
+            reels[r].textContent = finalResults[r].art;
+            reels[r].parentElement.classList.remove('hot');
+            blip(150, 0.1, 'sine', 0.08);
         }
-        
-        // Check results
-        var names = finalResults.map(function(s) { return s.name; });
+        lastSymbols = finalResults;
+
+        // ── Evaluate ────────────────────────────────────────
+        var names = finalResults.map(function (s) { return s.name; });
         var winAmount = 0;
         var winMsg = '';
-        
-        if (names[0] === names[1] && names[1] === names[2]) {
-            switch(names[0]) {
-                case 'dragon':
-                    winAmount = jackpot;
-                    winMsg = '★★★ JACKPOT!!! ★★★';
-                    showOrcMessage("IMPOSSIBLE! THE JACKPOT?! You... you... THIS MACHINE IS BROKEN!");
-                    jackpot = 10000;
-                    break;
-                case 'skull':
-                    winAmount = bet * 50;
-                    winMsg = '☠☠☠ TRIPLE SKULLS! 50x ☠☠☠';
-                    showOrcMessage("Skulls?! You got lucky, punk! Don't let it go to your empty head!");
-                    break;
-                case 'ghost':
-                    winAmount = bet * 25;
-                    winMsg = 'TRIPLE GHOSTS! 25x';
-                    showOrcMessage("Ghosts... fitting for someone who's about to be financially dead!");
-                    break;
-                case 'gun':
-                    winAmount = bet * 15;
-                    winMsg = 'TRIPLE ARES! 15x';
-                    showOrcMessage("Armed and slightly less poor! Don't get cocky!");
-                    break;
-                case 'stim':
-                    winAmount = bet * 10;
-                    winMsg = 'TRIPLE STIMS! 10x';
-                    showOrcMessage("Stims! You'll need them after I'm done with your wallet!");
-                    break;
-                case 'nuyen':
-                    winAmount = bet * 8;
-                    winMsg = 'TRIPLE NUYEN! 8x';
-                    showOrcMessage("Some nuyen back... temporary setback for Der Fette!");
-                    break;
-                case 'dice':
-                    winAmount = bet * 5;
-                    winMsg = 'TRIPLE DICE! 5x';
-                    showOrcMessage("Lucky dice! But luck always runs out, chummer!");
-                    break;
-                case 'chip':
-                    winAmount = bet * 3;
-                    winMsg = 'TRIPLE CHIPS! 3x';
-                    showOrcMessage("Chips! Barely worth my time, but enjoy your crumbs!");
-                    break;
+        var triple = names[0] === names[1] && names[1] === names[2];
+        var pair = !triple && (names[0] === names[1] || names[1] === names[2] || names[0] === names[2]);
+
+        if (triple) {
+            var sym = finalResults[0];
+            if (sym.name === 'dragon') {
+                winAmount = jackpot;
+                winMsg = '★★★ DRAGON JACKPOT!!! ★★★';
+                say("IMPOSSIBLE! THE JACKPOT?! THIS MACHINE IS BROKEN! *sobbing* BROKEN!");
+                jackpot = 4000;
+            } else {
+                winAmount = bet * sym.mult;
+                winMsg = '×3 ' + sym.name.toUpperCase() + '! ' + sym.mult + 'x!';
+                say(winAmount >= bet * 12 ? pick(bigWinLines) : pick(smallWinLines));
             }
-            reels.forEach(function(r) { r.parentElement.classList.add('winning'); });
-            setTimeout(function() { reels.forEach(function(r) { r.parentElement.classList.remove('winning'); }); }, 1500);
-        } else if (names[0] === names[1] || names[1] === names[2] || names[0] === names[2]) {
-            winAmount = bet * 2;
-            winMsg = 'PAIR! 2x';
-            showOrcMessage(getInsult());
+            reels.forEach(function (rl) { rl.parentElement.classList.add('winning'); });
+            setTimeout(function () { reels.forEach(function (rl) { rl.parentElement.classList.remove('winning'); }); }, 1500);
+        } else if (pair) {
+            var pairName = names[0] === names[1] || names[0] === names[2] ? names[0] : names[1];
+            if (chasing) {
+                winMsg = 'CHASE MISSED!';
+                say(mockLine());
+            } else if (pairName === 'dragon') {
+                winAmount = bet * 5;
+                winMsg = 'TWIN DRAGONS! 5x!';
+                say("Two dragons?! Don't you DARE find a third!");
+            } else {
+                winAmount = Math.floor(bet * 1.5);
+                winMsg = 'PAIR! 1.5x';
+                say(pick(smallWinLines));
+            }
         } else {
-            showOrcMessage(getInsult());
+            say(mockLine());
         }
-        
+
+        // heat bonus
         if (winAmount > 0) {
-            credits += winAmount;
-            document.getElementById('winDisplay').textContent = winMsg + ' +' + winAmount + ' nuyen';
-            if (AudioEngine.canPlay()) {
-                [200, 300, 400, 500].forEach(function(freq, i) {
-                    setTimeout(function() {
-                        if (!AudioEngine.canPlay()) return;
-                        var osc = AudioEngine.ctx.createOscillator();
-                        var gain = AudioEngine.ctx.createGain();
-                        osc.connect(gain);
-                        gain.connect(AudioEngine.destination());
-                        osc.frequency.value = freq;
-                        osc.type = 'sine';
-                        gain.gain.setValueAtTime(0.1, AudioEngine.ctx.currentTime);
-                        gain.gain.exponentialRampToValueAtTime(0.001, AudioEngine.ctx.currentTime + 0.15);
-                        osc.start();
-                        osc.stop(AudioEngine.ctx.currentTime + 0.15);
-                    }, i * 100);
-                });
+            var mult = heatMultiplier();
+            if (mult > 1) {
+                winAmount = Math.floor(winAmount * mult);
+                winMsg += ' (HEAT ×' + mult + ')';
             }
+            heat++;
+            winTune(winAmount >= bet * 10);
+            if (winAmount >= bet * 10) {
+                overlay.classList.add('shake');
+                setTimeout(function () { overlay.classList.remove('shake'); }, 450);
+            }
+        } else {
+            heat = 0;
+            loseThud();
         }
-        
-        updateDisplays();
+
+        // holds lifecycle: consume this spin's holds, maybe offer new ones
+        holds = [false, false, false];
+        holdsOffered = false;
+        if (winAmount === 0 && !gameOver && Math.random() < 0.4) {
+            holdsOffered = true;
+            document.getElementById('winDisplay').textContent = '— HOLD OFFERED: lock reels with 1/2/3, then spin —';
+        }
+
+        if (winAmount > 0) {
+            document.getElementById('winDisplay').textContent = winMsg + ' +' + winAmount + '¥';
+            openGamble(winAmount);
+        } else if (!holdsOffered) {
+            document.getElementById('winDisplay').textContent = winMsg;
+        }
+
         spinning = false;
-        document.getElementById('spinBtn').disabled = false;
+        document.getElementById('spinBtn').disabled = gambleActive;
+        updateDisplays();
+        if (credits < 10 && !gambleActive && !gameOver) endGame(false);
     }
-    
-    function changeBet(delta) {
-        bet = Math.max(10, Math.min(100, bet + delta));
+
+    // ── Gamble (double or nothing, ties lose) ───────────────
+    function cardLabel(v) { return v === 14 ? 'A' : v === 13 ? 'K' : v === 12 ? 'Q' : v === 11 ? 'J' : String(v); }
+    function drawCard() { return 2 + Math.floor(Math.random() * 13); }
+
+    function openGamble(amount) {
+        pot = amount;
+        gambleSteps = 0;
+        gambleActive = true;
+        gambleCardValue = drawCard();
+        document.getElementById('gamblePanel').classList.add('open');
+        document.getElementById('gamblePot').textContent = pot;
+        document.getElementById('gambleCard').textContent = '[ ' + cardLabel(gambleCardValue) + ' ]';
+        document.getElementById('gambleActions').innerHTML = 'Next card <b>[H]</b>igher or <b>[L]</b>ower? — or <b>[C]</b>ollect (ties lose, chummer)';
+        document.getElementById('spinBtn').disabled = true;
+    }
+    function closeGamble() {
+        gambleActive = false;
+        pot = 0;
+        document.getElementById('gamblePanel').classList.remove('open');
+        document.getElementById('spinBtn').disabled = false;
         updateDisplays();
     }
-    
+    function collectPot() {
+        if (!gambleActive) return;
+        var amount = pot;
+        closeGamble();
+        payFromBank(amount);
+        document.getElementById('winDisplay').textContent = 'COLLECTED +' + amount + '¥';
+        blip(523, 0.12, 'sine', 0.08);
+        blip(659, 0.15, 'sine', 0.08, 110);
+        updateDisplays();
+    }
+    function gambleGuess(higher) {
+        if (!gambleActive || gameOver) return;
+        var next = drawCard();
+        document.getElementById('gambleCard').textContent = '[ ' + cardLabel(gambleCardValue) + ' ] → [ ' + cardLabel(next) + ' ]';
+        var won = higher ? next > gambleCardValue : next < gambleCardValue;
+        if (won) {
+            pot *= 2;
+            gambleSteps++;
+            gambleCardValue = next;
+            document.getElementById('gamblePot').textContent = pot;
+            say(pick(gambleWinLines));
+            winTune(false);
+            if (gambleSteps >= 4 || pot >= bank + credits) {
+                say("ENOUGH! Take it! TAKE IT AND GET AWAY FROM MY MACHINE!");
+                collectPot();
+            } else {
+                document.getElementById('gambleActions').innerHTML = 'Won! <b>[H]</b>/<b>[L]</b> to ride again (' + (4 - gambleSteps) + ' left) or <b>[C]</b>ollect';
+                say(pick(gambleTauntLines));
+            }
+        } else {
+            say(pick(gambleLoseLines));
+            loseThud();
+            heat = 0;
+            document.getElementById('winDisplay').textContent = 'GAMBLE LOST — ' + pot + '¥ back to the house';
+            closeGamble();
+            if (credits < 10) endGame(false);
+        }
+    }
+
+    // ── End states ──────────────────────────────────────────
+    function endGame(playerWon) {
+        if (gameOver) return;
+        gameOver = true;
+        spinning = false;
+        gambleActive = false;
+        var end = document.createElement('div');
+        end.className = 'casino-end ' + (playerWon ? 'win' : 'lose');
+        if (playerWon) {
+            best.banksBroken++;
+            saveBest();
+            end.innerHTML = '<pre>' +
+                ' ██████╗██╗     ███████╗ █████╗ ███╗   ██╗███████╗██████╗ \n' +
+                '██╔════╝██║     ██╔════╝██╔══██╗████╗  ██║██╔════╝██╔══██╗\n' +
+                '██║     ██║     █████╗  ███████║██╔██╗ ██║█████╗  ██║  ██║\n' +
+                '██║     ██║     ██╔══╝  ██╔══██║██║╚██╗██║██╔══╝  ██║  ██║\n' +
+                '╚██████╗███████╗███████╗██║  ██║██║ ╚████║███████╗██████╔╝\n' +
+                ' ╚═════╝╚══════╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝╚═════╝ \n' +
+                '            OUT — DER FETTE IS BUSTED</pre>' +
+                '<div class="end-text">You drained every last nuyen out of his machine. Der Fette flips the table, screams something about "audited spirits", and waddles into the night. You walk out with ' + credits + '¥ and the best story in the sprawl.<br><br>Banks broken so far: ' + best.banksBroken + '</div>' +
+                '<div class="slot-buttons"><button class="slot-btn spin" id="casinoAgainBtn">REMATCH</button><button class="slot-btn exit" onclick="closeCasino()">WALK AWAY</button></div>';
+            say("NOOOOO! MY BEAUTIFUL MONEY! GET OUT! GET OUT AND NEVER COME BACK!");
+            winTune(true);
+            overlay.classList.add('shake');
+        } else {
+            end.innerHTML = '<pre>' +
+                '██████╗ ██████╗  ██████╗ ██╗  ██╗███████╗\n' +
+                '██╔══██╗██╔══██╗██╔═══██╗██║ ██╔╝██╔════╝\n' +
+                '██████╔╝██████╔╝██║   ██║█████╔╝ █████╗  \n' +
+                '██╔══██╗██╔══██╗██║   ██║██╔═██╗ ██╔══╝  \n' +
+                '██████╔╝██║  ██║╚██████╔╝██║  ██╗███████╗\n' +
+                '╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝</pre>' +
+                '<div class="end-text">Der Fette pockets your last nuyen, licks a tusk, and has the bouncer-drone show you the door. "Come back when you find more money to lose, chummer!"<br><br>Spins survived: ' + stats.spins + '</div>' +
+                '<div class="slot-buttons"><button class="slot-btn spin" id="casinoAgainBtn">BORROW 1000¥ (TRY AGAIN)</button><button class="slot-btn exit" onclick="closeCasino()">SLINK AWAY</button></div>';
+            say("And STAY broke! AHAHAHAHA!");
+            loseThud();
+        }
+        overlay.appendChild(end);
+        var again = document.getElementById('casinoAgainBtn');
+        if (again) again.addEventListener('click', function () { closeCasino(); setTimeout(startCasinoGame, 80); });
+    }
+
+    // ── Bets, buttons, keys ─────────────────────────────────
+    var BET_STEPS = [10, 25, 50, 100, 250];
+    function changeBet(dir) {
+        if (spinning || gambleActive || gameOver) return;
+        var idx = BET_STEPS.indexOf(bet);
+        if (idx < 0) idx = 1;
+        idx = Math.max(0, Math.min(BET_STEPS.length - 1, idx + dir));
+        bet = BET_STEPS[idx];
+        blip(440 + idx * 60, 0.05, 'square', 0.04);
+        updateDisplays();
+    }
+
     document.getElementById('spinBtn').addEventListener('click', spin);
-    document.getElementById('betBtn').addEventListener('click', function() { changeBet(10); });
-    
+    document.getElementById('betUpBtn').addEventListener('click', function () { changeBet(1); });
+    document.getElementById('betDownBtn').addEventListener('click', function () { changeBet(-1); });
+
     function handleCasinoKeys(e) {
+        var k = e.key.toLowerCase();
         if (e.key === ' ' || e.key === 'Enter') {
             e.preventDefault();
+            if (gambleActive) { collectPot(); return; }
             spin();
-        } else if (e.key === '+' || e.key === '=') {
-            changeBet(10);
-        } else if (e.key === '-' || e.key === '_') {
-            changeBet(-10);
-        } else if (e.key === 'Escape') {
-            closeCasino();
-        }
+        } else if (e.key === '+' || e.key === '=') changeBet(1);
+        else if (e.key === '-' || e.key === '_') changeBet(-1);
+        else if (k === '1') toggleHold(0);
+        else if (k === '2') toggleHold(1);
+        else if (k === '3') toggleHold(2);
+        else if (k === 'h' && gambleActive) gambleGuess(true);
+        else if (k === 'l' && gambleActive) gambleGuess(false);
+        else if ((k === 'c' || k === 'g') && gambleActive) { if (k === 'c') collectPot(); }
+        else if (e.key === 'Escape') closeCasino();
     }
-    
     document.addEventListener('keydown', handleCasinoKeys);
-    
-    window.closeCasino = function() {
+
+    window.closeCasino = function () {
         document.removeEventListener('keydown', handleCasinoKeys);
-        if (orcTimer) {
-            clearInterval(orcTimer);
-            orcTimer = null;
-        }
-        var overlay = document.getElementById('casinoOverlay');
-        if (overlay) overlay.remove();
+        if (orcTimer) { clearInterval(orcTimer); orcTimer = null; }
+        if (gambleActive && pot > 0) { credits += pot; pot = 0; } // never eat an uncollected pot on exit
+        var el = document.getElementById('casinoOverlay');
+        if (el) el.remove();
     };
-    
+
     updateDisplays();
 }
