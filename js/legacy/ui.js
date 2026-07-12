@@ -2819,7 +2819,7 @@ function startCasinoGame() {
         '<div class="orc-title">◆ DER FETTE ◆</div>' +
         '<div class="orc-mood smug" id="orcMood">SMUG</div>' +
         '<div class="orc-stage mood-smug" id="orcStage">' +
-        '<img class="orc-img" id="orcImg" src="assets/casino/der-fette.jpg" alt="Der Fette, orc casino boss">' +
+        '<img class="orc-img" id="orcImg" src="assets/casino/Der-Fette.jpg" alt="Der Fette, orc casino boss">' +
         '<div class="orc-scan"></div><div class="orc-roll"></div><div class="orc-tint"></div>' +
         '<pre class="orc-portrait" id="orcPortrait"></pre>' +
         '</div>' +
