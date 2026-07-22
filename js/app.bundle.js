@@ -2181,7 +2181,7 @@
     print("");
     print(`${systemName.toUpperCase()}: BRE SITE LINK REQUIRED`, "t-amber");
     print("This panel uses the connected BRE site diagnostic profile and facility data.", "t-dim");
-    print("Use /CONNECT BRE-01 ALPHA-7742 after NET ONLINE to mount a remote site.", "t-cyan");
+    print("Use /CONNECT BRE-XX <code> after NET ONLINE to mount a remote site.", "t-cyan");
     print("");
   }
 
